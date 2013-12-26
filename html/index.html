@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>nanoEditor</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link href="../css/nano.css" type="text/css" rel="stylesheet" >
+        <link href="../css/main.css" type="text/css" rel="stylesheet" > 
+        <script type="text/javascript" src="../js/nanoEditor.js"></script>
+        <script>
+            function addEvent(obj, ev, fu) {
+                if (obj.addEventListener) {
+                    obj.addEventListener(ev, fu, false);
+                } else {
+                    var eev = 'on' + ev;
+                    obj.attachEvent(eev, fu);
+                }
+            }
+            addEvent(window, 'load', function() {
+                ////////////////////////////////////////////////////////////
+                ///////////////////  Main usage ///////////////////////////
+                ///////////////////////////////////////////////////////////
+
+                nanoEdit = createEditor();
+                editTable('editTable', nanoEdit);
+
+                divdiv = document.getElementById('divdiv');
+                divdiv.onclick = function() {
+                    nanoEdit.attacheEditor(divdiv);
+                };
+
+                ///////////////////////////////////////////////////////////
+                /////////  will glue table cells with editor         
+                ///////////////////////////////////////////////////////////
+
+                function editTable(id, editor) {
+
+                    var td, parent, et = document.getElementById(id);
+
+                    function locateTd(td, id) {
+                        if (td.tagName !== 'BODY') {
+                            if (td.tagName === "TD") {
+                                // cell within the right table ?
+                                //       td    row         tbody     table
+                                parent = td.parentNode.parentNode.parentNode;
+                                if (parent.tagName === 'TABLE' && parent.id === id) {
+                                    return td;
+                                }
+                            }
+                            td = locateTd(td.parentNode, id);
+                        } else {
+                            td = '';
+                        }
+                        return td;
+                    }
+                    et.onclick = function(e) {
+                        if (!e) {
+                            e = window.event;
+                        }
+                        td = (e.target) ? e.target : e.srcElement;
+                        td = locateTd(td, id);
+                        if (td) {
+                            editor.attacheEditor(td);
+                        }
+                    };
+                }
+            }
+            )
+        </script>
+    </head>
+    <body>
+        <div class="content">
+            <div class="divhead" >                                                       
+                <i><a href="http://hgsweb.de"> <img  src="../icons/home.png"></a><b style="border-bottom:1px solid blue;color:white;font-size:2rem;">&nbsp;PHP &amp; JavaScript &amp; HTML &amp; CSS </b></i>
+                <b></b>
+                <span class="small"><b></b></span>                                     
+            </div>
+            <p>Just click in a cell and the editor will open <br>
+                Everything you need is within the source of this page <p>                          
+                    <table border='1' id='editTable'>
+                        <tr><th>------------Head1----------------</th><th >------------------Head2----------------------</th></tr>
+                        <tr><td>ffffffffffffff</td><td >bbbbbbbbbb</td></tr>
+                        <tr><td>ffffffffffffff</td><td >bbbbbbbbbb</td></tr>
+                        <tr><th>On sale today</th><th > Dear Diary </th></tr>
+                        <tr><td>ffffffffffffff</td><td >bbbbbbbbbb</td></tr>
+                    </table><p>
+                    <div id="divdiv">click <b>me</b> here </div>
+        </div>
+        <div id=foot class="foot trans"> 
+            <span class="footText">
+                &copy;2007 - 2013 <a href="http://athos-calling.com/hgs/html/index_1.php" style="color:white;">Heinrich Schweitzer</a> All rights reserved.
+            </span>             
+        </div>
+    </body>
+</html>
+
+
