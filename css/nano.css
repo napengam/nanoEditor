@@ -8,15 +8,23 @@ and open the template in the editor.
     Author     : hgs
 */
 
-#nanoEditDiv{
-    background:rgb(213, 213, 255);;
+.nanoEditDiv{
+    background:rgb(213, 213, 255);
+    width:100%;
+   
+}
+.nanoEditDiv > table{
+    background:rgb(213, 213, 255);
+    background:white;
 }
 .menuRow{
-    background:silver;
+    background:white;
     vertical-align:middle;
 }
 .menuRow td{
     border: 1px solid white;
+    white-space: normal;
+    font-size:0.8rem;
 }
 .menuRow td:hover{
     border: 1px solid blue;
@@ -24,7 +32,11 @@ and open the template in the editor.
 .menuRow td span{
     border: 1px solid black;
     vertical-align:middle;
-  
+    font-family:'arial'; 
+    margin:0;
+    padding:0;
+    float:left;
+     background:white;
 }.menuRow td span:hover{
     border: 1px solid white;
 }

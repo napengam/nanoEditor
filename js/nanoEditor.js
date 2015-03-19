@@ -9,7 +9,7 @@
  * TyniEditor  at http://www.scriptiny.com/2010/02/javascript-wysiwyg-editor/
  * and documentation found at http://help.dottoro.com/larpvnhw.php
  * 
- * Copyright (C) 2013 Heinrich Schweitzer http://hgsweb.de/
+ * Copyright (C) 2013-2014 Heinrich Schweitzer http://hgsweb.de/
  * 
  */
 function createEditor() {
@@ -18,7 +18,7 @@ function createEditor() {
     var
             div, docx, d, t, iframe, uidiv, i, n, item,
             storedSelections, innerHTML, dd,
-            xstart, ystart, fheight, configMenu,
+            xstart, ystart, fheight, configMenu = [],
             fwidth, fheightStart, fwidthStart, saveCallback, closeCallback;
     ///////////////////////////////////////////////////
 
@@ -45,42 +45,40 @@ function createEditor() {
 
     document.body.appendChild(div);
     div.style.border = '1px solid blue';
+    div.style.background='white';
     div.id = t + 'Div';
     uidiv = div;
-    div.innerHTML = "<table> <tr id=" + t + "saveselect class=menuRow>" +
-            "<td  id=" + t + "save><img src='../icons/save_on.gif' alt=save title='save&close'></td>\n\
-                <td id=" + t + "-bold > <img src='../icons/bold_on.gif' alt='bold' title='Bold'></td>" +
-            "<td id=" + t + "-italic><img src='../icons/italics_on.gif' alt='italics' title='Italics'></td> " +
-            "<td id=" + t + "-underline><img src='../icons/underline_on.gif' alt='underline' title='underline'></td> " +
-            " <td><select id=" + t + "Font name=sel size=1  tabindex=-1>\n\
-                      <option > </option> \n\
-                      <option value=Courier selected>Courier</option> \n\
-                      <option value=Arial>Arial</option> \n\
-                      <option value=Helvetica >Helvetica</option> \n\
-                      <option value=Times >Times</option> \n\
-                       </select>  \n\</td> \n\
-                 <td> <select id=" + t + "Size name=sel size=1 tabindex=-1>\n\
-                       <option > </option> \n\
-                      <option value=1>1</option> \n\
-                      <option value=2>2</option> \n\
-                      <option value=3 selected>3</option> \n\
-                      <option value=4>4</option> \n\
-                      <option value=5>5</option> \n\
-                      <option value=6>6</option> \n\
-                      <option value=7>7</option> \n\
-                       </select>  \n\
-                        </td>\n\
-                        <td>\n\
-                            <span id=" + t + "-black style='background:black'>&nbsp;&nbsp;&nbsp;</span>\n\
-                            <span id=" + t + "-red  style='background:red'>&nbsp;&nbsp;&nbsp;</span>\n\
-                            <span id=" + t + "-green style='background:green'>&nbsp;&nbsp;&nbsp;</span>\n\
-                            <span id=" + t + "-blue style='background:blue'>&nbsp;&nbsp;&nbsp;</span></td>" +
-            "<td  id=" + t + "-undo ><img src='../icons/undo_on.gif' alt=undo title='undo'></td>" +
-            "<td  id=" + t + "close style='color:red;font-weight:bold;'><img src='../icons/close.jpg' alt=close title='close'></td>" +
-            "</tr>\n\
-                <tr><td colspan = '9'> <iframe id =" + t + "nanoContent src = '' > </iframe></td></tr> \n\
-            <tr><td colspan=9><img id=" + t + "dragMe style=\"float:right\" src=\"../icons/resize.gif\"></td></tr></table>";
-
+    div.innerHTML = ["<form action=#><table style='width:100%'> <tr  style='text-align:center;'  id=", t, "saveselect class=menuRow>",
+        "<td  id=", t, "save><img style='vertical-align:middle;'  src='../icons/save_on.gif' alt=save title='save&close'></td>",
+        "<td id=", t, "-bold ><img style='vertical-align:middle;'  src='../icons/bold_on.gif' alt='bold' title='Bold'></td>",
+        "<td id=", t, "-italic><img style='vertical-align:middle;'  src='../icons/italics_on.gif' alt='italics' title='Italics'></td> ",
+        "<td id=", t, "-underline><img style='vertical-align:middle;'  src='../icons/underline_on.gif' alt='underline' title='underline'></td>",
+        "<td><select id=", t, "Font name=sel size=1  tabindex=-1>",
+        "<option ></option> ",
+        "<option value=Courier selected>Courier</option> ",
+        "<option value=Arial>Arial</option> ",
+        "<option value=Helvetica >Helvetica</option> ",
+        "<option value=Times >Times</option> ",
+        "</select> </td> ",
+        "<td><select id=", t, "Size name=sel size=1 tabindex=-1>",
+        "<option ></option> ",
+        "<option value=1>1</option> ",
+        "<option value=2>2</option> ",
+        "<option value=3 selected>3</option> ",
+        "<option value=4>4</option> ",
+        "<option value=5>5</option> ",
+        "<option value=6>6</option> ",
+        "<option value=7>7</option> ",
+        "</select></td><td>",
+        "<span id=", t, "-black style='background:black'>&nbsp;&nbsp;</span>",
+        "<span id=", t, "-red  style='background:red'>&nbsp;&nbsp;</span>",
+        "<span id=", t, "-green style='background:green'>&nbsp;&nbsp;</span>",
+        "<span id=", t, "-blue style='background:blue'>&nbsp;&nbsp;</span></td>",
+        "<td  id=", t, "-undo ><img style='vertical-align:middle;'  src='../icons/undo_on.gif' alt=undo title='undo'></td>",
+        "<td  id=", t, "close style='color:red;font-weight:bold;'><img style='vertical-align:middle;'  src='../icons/close.jpg' alt=close title='close'></td>",
+        "</tr>",
+        "<tr><td colspan = '9'><iframe style='width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
+        "<tr><td colspan=9><img id=", t, "dragMe style=\"float:right\" src=\"../icons/resize.gif\"></td></tr></table></form>"].join('');
 
     n = configMenu.length;
     t = t.toString();
@@ -249,6 +247,7 @@ function createEditor() {
         innerHTML = val;
         obj.innerHTML = '';
         obj.appendChild(uidiv);
+        
         setContent(val);
     }
     function onSaveCallback(Callback) {
