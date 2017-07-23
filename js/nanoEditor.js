@@ -9,7 +9,7 @@
  * TyniEditor  at http://www.scriptiny.com/2010/02/javascript-wysiwyg-editor/
  * and documentation found at http://help.dottoro.com/larpvnhw.php
  * 
- * Copyright (C) 2013-2014 Heinrich Schweitzer http://hgsweb.de/
+ * Copyright (C) 2013-2017  Heinrich Schweitzer http://hgsweb.de/
  * 
  */
 function createEditor() {
@@ -17,9 +17,8 @@ function createEditor() {
     ////////////////////////////////////////////////////
     var
             div, docx, d, t, iframe, uidiv, i, n, item,
-            storedSelections, innerHTML, dd,
-            xstart, ystart, fheight, configMenu = [],
-            fwidth, fheightStart, fwidthStart, saveCallback, closeCallback;
+            storedSelections, innerHTML, configMenu = [],
+            saveCallback, closeCallback;
     ///////////////////////////////////////////////////
 
     d = new Date();
@@ -45,14 +44,14 @@ function createEditor() {
 
     document.body.appendChild(div);
     div.style.border = '1px solid blue';
-    div.style.background='white';
+    div.style.background = 'white';
     div.id = t + 'Div';
     uidiv = div;
-    div.innerHTML = ["<form action=#><table style='width:100%'> <tr  style='text-align:center;'  id=", t, "saveselect class=menuRow>",
-        "<td  id=", t, "save><img style='vertical-align:middle;'  src='../icons/save_on.gif' alt=save title='save&close'></td>",
-        "<td id=", t, "-bold ><img style='vertical-align:middle;'  src='../icons/bold_on.gif' alt='bold' title='Bold'></td>",
-        "<td id=", t, "-italic><img style='vertical-align:middle;'  src='../icons/italics_on.gif' alt='italics' title='Italics'></td> ",
-        "<td id=", t, "-underline><img style='vertical-align:middle;'  src='../icons/underline_on.gif' alt='underline' title='underline'></td>",
+    div.innerHTML = ["<table style='width:100%'> <tr  style='text-align:center;'  id=", t, "saveselect class=menuRow>",
+        "<td  id=", t, "save><i class='fa fa-floppy-o' title='save&close'></td>",
+        "<td id=", t, "-bold ><i class='fa fa-bold'  title='Bold'></td>",
+        "<td id=", t, "-italic><i class='fa fa-italic ' title='Italics'></td> ",
+        "<td id=", t, "-underline><i class='fa fa_underline' title='underline'></td>",
         "<td><select id=", t, "Font name=sel size=1  tabindex=-1>",
         "<option ></option> ",
         "<option value=Courier selected>Courier</option> ",
@@ -74,63 +73,18 @@ function createEditor() {
         "<span id=", t, "-red  style='background:red'>&nbsp;&nbsp;</span>",
         "<span id=", t, "-green style='background:green'>&nbsp;&nbsp;</span>",
         "<span id=", t, "-blue style='background:blue'>&nbsp;&nbsp;</span></td>",
-        "<td  id=", t, "-undo ><img style='vertical-align:middle;'  src='../icons/undo_on.gif' alt=undo title='undo'></td>",
-        "<td  id=", t, "close style='color:red;font-weight:bold;'><img style='vertical-align:middle;'  src='../icons/close.jpg' alt=close title='close'></td>",
+        "<td  id=", t, "-undo ><i class='fa fa-undo' title='undo'></td>",
+        "<td  id=", t, "close style='color:red;font-weight:bold;'><i class='fa fa-times' title='close'></td>",
         "</tr>",
-        "<tr><td colspan = '9'><iframe style='width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
-        "<tr><td colspan=9><img id=", t, "dragMe style=\"float:right\" src=\"../icons/resize.gif\"></td></tr></table></form>"].join('');
+        "<tr><td colspan = '9'><iframe style='width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> "].join('');
 
     n = configMenu.length;
     t = t.toString();
     for (i = 0; i < n; i++) {
         item = configMenu[i];
-        addEvent(document.getElementById(t + item.label), item.event, item.action);
-
+        document.getElementById(t + item.label).addEventListener(item.event, item.action, false);
     }
-    function addEvent(obj, ev, fu) {
-        if (obj.addEventListener) {
-            obj.addEventListener(ev, fu, false);
-        } else {
-            var eev = 'on' + ev;
-            obj.attachEvent(eev, fu);
-        }
-    }
-
-    function _dragLimit(e) {
-        if (fwidth + (e.screenX - xstart) >= fwidthStart) {
-            iframe.style.width = fwidth + (e.screenX - xstart) + 'px';
-        } else {
-            iframe.style.width = fwidth + 'px';
-        }
-        if (fheight + (e.screenY - ystart) >= fheightStart) {
-            iframe.style.height = fheight + (e.screenY - ystart) + 'px';
-        } else {
-            iframe.style.height = fheight + 'px';
-        }
-    }
-    ;
-    dd = document.getElementById(t + 'dragMe');
-    dd.ondragstart = function(e) {
-        fheight = parseInt(iframe.clientHeight);
-        fwidth = parseInt(iframe.clientWidth);
-        xstart = e.screenX;
-        ystart = e.screenY;
-        if (this.style.position !== 'relative') {
-            this.style.position = 'relative';
-        }
-    };
-    dd.ondragend = function(e) {
-        _dragLimit(e);
-    };
-    dd.ondrag = function(e) {
-        _dragLimit(e);
-    };
-
     iframe = document.getElementById(t + 'nanoContent');
-
-    fheightStart = parseInt(iframe.clientHeight);
-    fwidthStart = parseInt(iframe.clientWidth);
-
     docx = iframe.contentDocument;
     docx.open();
     docx.write('');
@@ -146,16 +100,11 @@ function createEditor() {
 
 
     function saveContent() {
-        var innerHTML = iframe.contentDocument.body.innerHTML;
-        var node = uidiv.parentNode;
+        uidiv.parentNode.innerHTML = iframe.contentDocument.body.innerHTML;
         uidiv.style.display = 'none';
-        document.body.appendChild(uidiv);
-        node.innerHTML = '';
-        node.innerHTML = innerHTML;
         if (typeof saveCallback === 'function') {
             saveCallback();
         }
-
     }
     function editCommand(e) {
         stopBubble(e);
@@ -193,24 +142,18 @@ function createEditor() {
     }
     function saveSelection(e) {
         stopBubble(e);
-        if (iframe.contentDocument.getSelection) {  // all browsers, except IE before version 9
-            var selection = iframe.contentDocument.getSelection();
-            if (selection.rangeCount > 0) {
-                storedSelections = selection.getRangeAt(0);
-            }
-        } else if (iframe.contentDocument.selection) {   // Internet Explorer
-            var range = iframe.contentDocument.selection.createRange();
-            storedSelections = range.getBookmark();
+        // all browsers, except IE before version 9
+        var selection = iframe.contentDocument.getSelection();
+        if (selection.rangeCount > 0) {
+            storedSelections = selection.getRangeAt(0);
+        } else {
+            storedSelections = null;
         }
     }
     function restoreSelection() {
-        if (iframe.contentDocument.getSelection) {  // all browsers, except IE before version 9
+        if (storedSelections !== null) {  // all browsers, except IE before version 9
             iframe.contentDocument.getSelection().removeAllRanges();
             iframe.contentDocument.getSelection().addRange(storedSelections);
-        } else if (iframe.contentDocument.body.createTextRange) {    // Internet Explorer
-            var rangeObj = iframe.contentDocument.body.createTextRange();
-            rangeObj.moveToBookmark(storedSelections);
-            rangeObj.select();
         }
     }
     function closeEditor() {
@@ -232,7 +175,7 @@ function createEditor() {
         docx.write(content);
         docx.close();
         docx.body.contentEditable = true;
-        docx.body.ondrop = function(e) {
+        docx.body.ondrop = function (e) {
             e.preventDefault();
             return false;
         };
@@ -241,14 +184,11 @@ function createEditor() {
         docx.body.focus();
     }
     function attacheEditor(obj) {
-        var val;       
         closeEditor();
-        val = obj.innerHTML;
-        innerHTML = val;
+        innerHTML = obj.innerHTML;
         obj.innerHTML = '';
         obj.appendChild(uidiv);
-        
-        setContent(val);
+        setContent(innerHTML);
     }
     function onSaveCallback(Callback) {
         if (typeof Callback === 'function') {
@@ -267,7 +207,8 @@ function createEditor() {
     return {// reveal these functions to the outside
         closeEditor: closeEditor,
         attacheEditor: attacheEditor,
-        saveCallback:onSaveCallback,
-        closeCallback:onCloseCallback
+        saveCallback: onSaveCallback,
+        closeCallback: onCloseCallback,
+        onchange: closeEditor
     };
 }
