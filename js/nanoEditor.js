@@ -17,16 +17,16 @@ function createEditor() {
             configMenu = [], innerHTML, storedSelections,
             saveCallback, closeCallback;
 
-    /*
-     * do we allready exist ?
-     */
+    //*
+    // * do we allready exist ?
+    //
     uidiv = document.querySelector('.uidivuidiv');
     if (uidiv) {
         return uidiv.aaaself;
     }
-    /*
-     * create
-     */
+    //*
+    //* create
+    //
     d = new Date();
     t = d.getTime();// used to make ids  somehow 'unique' 
     uidiv = document.createElement('DIV');
@@ -39,6 +39,10 @@ function createEditor() {
         {'label': '-undo', 'event': 'click', 'action': editCommand},
         {'label': '-insertOrderedList', 'event': 'click', 'action': editCommand},
         {'label': '-insertUnorderedList', 'event': 'click', 'action': editCommand},
+        {'label': '-Justifyleft', 'event': 'click', 'action': editCommand},
+        {'label': '-Justifyright', 'event': 'click', 'action': editCommand},
+        {'label': '-Justifyfull', 'event': 'click', 'action': editCommand},
+        {'label': '-Justifycenter', 'event': 'click', 'action': editCommand},
         {'label': 'save', 'event': 'click', 'action': saveContent},
         {'label': 'Color', 'event': 'change', 'action': foreColor},
         {'label': 'close', 'event': 'click', 'action': closeEditor},
@@ -56,20 +60,27 @@ function createEditor() {
     //uidiv.style.minWidth = '600px';
     uidiv.id = t + 'Div';
     uidiv.innerHTML = ["<table style='border-collapse:collapse'> <tr style='border-bottom:1px solid gray' id=", t, "saveselect><td>",
-        "<button id=", t, "save><i class='fa fa-fw fa-save' title='save&close'></i></button><i class='fa fa-fw fa-square-full'></i>",
+        "<button id=", t, "save><i class='fa fa-fw fa-save' title='save&close'></i></button>",
+        "<i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-bold ><i class='fa fa-fw fa-bold' title='Bold'></i></button>",
         "<button id=", t, "-italic><i class='fa fa-fw fa-italic'  title='Italics'></i></button>",
         "<button id=", t, "-underline><i class='fa fa-fw fa-underline' title='underline'></i></button><i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-insertUnorderedList><i class='fa fa-fw fa-list-ul' title='unordered list'></i></button>",
-        "<button id=", t, "-insertOrderedList><i class='fa fa-fw fa-list-ol' title='unordered list'></i></button><i class='fa fa-fw fa-square-full'></i>",
-        "<span><select id=", t, "Font name=sel size=1  tabindex=-1>",
+        "<button id=", t, "-insertOrderedList><i class='fa fa-fw fa-list-ol' title='unordered list'></i></button>",
+        "<i class='fa fa-fw fa-square-full'></i>",
+        "<button id=", t, "-Justifyleft><i class='fa fa-fw fa-align-left' title='align left'></i></button>",
+        "<button id=", t, "-Justifyright><i class='fa fa-fw fa-align-right' title='align right'></i></button>",
+        "<button id=", t, "-Justifyfull><i class='fa fa-fw fa-align-justify' title='align full'></i></button>",
+        "<button id=", t, "-Justifycenter><i class='fa fa-fw fa-align-center' title='align center'></i></button>",
+        "<i class='fa fa-fw fa-square-full'></i>",
+        "<span><select id=", t, "Font name=sel size=1  tabindex=-1 style='font-size:1em'>",
         "<option></option> ",
         "<option value=Courier selected>Courier</option> ",
         "<option value=Arial>Arial</option> ",
         "<option value=Helvetica >Helvetica</option> ",
         "<option value=Times >Times</option> ",
         "</select> </span> ",
-        "<span><select id=", t, "Size name=sel size=1 tabindex=-1>",
+        "<span><select id=", t, "Size name=sel size=1 tabindex=-1 style='font-size:1em'>",
         "<option ></option> ",
         "<option value=1>1</option> ",
         "<option value=2>2</option> ",
@@ -78,15 +89,12 @@ function createEditor() {
         "<option value=5>5</option> ",
         "<option value=6>6</option> ",
         "<option value=7>7</option> ",
-        "</select></span><i class='fa fa-fw fa-square-full'></i>",
-        "<span><select id=", t, "Color name=sel size=1  tabindex=-1>",
-        "<option value='black' style='background:black'>Schwarz</option>",
-        "<option value='red'  style='background:red'><span style='background:red'>Rot</span></option>",
-        "<option value='green' style='background:green'>Grün</option>",
-        "<option value='blue' style='background:blue'>Blau</option></select><i class='fa fa-fw fa-square-full'></i>",
+        "</select></span>",
+        "<input id=", t, "Color type='color' value='#000000' title='Foreground' style='width:2em;margin:0;padding:0;border:0;position:relative;top:3px'>",
+        "<i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-undo ><i class='fa fa-fw fa-undo' title='undo'></i></button>",
         "<button id=", t, "Image ><i class='fa fa-fw fa-image' title='Picture'></i></button>",
-        "<button  style='float:right'  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
+        "<button  style=''  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
         "</td></tr>",
         "<tr><td><iframe style='width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
         "</table>"].join('');
@@ -143,7 +151,7 @@ function createEditor() {
     function foreColor(e) {
         stopBubble(e);
         restoreSelection();
-        iframe.contentDocument.execCommand('foreColor', false, this.options[this.selectedIndex].value);
+        iframe.contentDocument.execCommand('foreColor', false, this.value);
     }
     function fontSize(e) {
         stopBubble(e);
@@ -244,9 +252,6 @@ function createEditor() {
         if (iframe.contentDocument.body.innerText === '') {
             iframe.contentDocument.body.innerHTML = '&nbsp;';
         }
-
-
-
         doc = iframe.contentDocument;
         // get current selection
         sel = iframe.contentDocument.getSelection();
@@ -326,9 +331,9 @@ function createEditor() {
                 theForm = document.getElementById(formId),
                 dropZone, div,
                 uploadedFiles;
-        /*
-         * add drop handlers
-         */
+        // 
+        //    add drop handlers
+        //
         if (typeof dropZoneId === 'string') {
             dropZone = document.getElementById(dropZoneId);
         } else {
@@ -339,9 +344,9 @@ function createEditor() {
         dropZone.ondragover = function (event) {
             event.preventDefault();
         };
-        /*
-         * find file type element
-         */
+        //*
+        //* find file type element
+        //
         if (!theForm) {
             div = document.createElement('DIV');
             div.innerHTML = ["<form name='upload' enctype='multipart/form-data' action='../allMyScripts/php/upload_save_2.php' method='POST'>",
@@ -409,10 +414,7 @@ function createEditor() {
                 if (dialogs) {
                     dialogs.infoDialog(js.result, [{label: 'ok', action: {}}]);
                 }
-
                 thisDropZone.innerHTML = "<span  class='dropZone'> <img style='width:" + js.width + "px;height:" + js.height + "px' src='" + js.result + "'></span>";
-
-
             } catch (e) {
                 return;
             }
@@ -428,8 +430,6 @@ function createEditor() {
                 ev.dataTransfer.clearData();
             }
         }
-
-        ;
     }
     self = {// reveal these functions to the outside
         closeEditor: closeEditor,
