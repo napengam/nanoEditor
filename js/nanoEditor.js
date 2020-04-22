@@ -44,6 +44,7 @@ function createEditor() {
         {'label': '-Justifycenter', 'event': 'click', 'action': editCommand},
         {'label': '-outdent', 'event': 'click', 'action': editCommand},
         {'label': '-indent', 'event': 'click', 'action': editCommand},
+        {'label': '-print', 'event': 'click', 'action': editCommand},
         {'label': 'save', 'event': 'click', 'action': saveContent},
         {'label': 'Color', 'event': 'change', 'action': foreColor},
         {'label': 'close', 'event': 'click', 'action': closeEditor},
@@ -55,7 +56,7 @@ function createEditor() {
     document.body.appendChild(uidiv);
     uidiv.classList.add('uidivuidiv');
     uidiv.style.border = '1px solid gray';
-    uidiv.style.background = 'white';
+    uidiv.style.backgroundColor = 'rgb(249, 249, 249)';
     uidiv.style.display = 'inline-block';
     uidiv.style.width = 'auto';
     //uidiv.style.minWidth = '600px';
@@ -76,6 +77,8 @@ function createEditor() {
         "<i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-outdent><i class='fa fa-fw fa-outdent' title='outdent'></i></button>",
         "<button id=", t, "-indent><i class='fa fa-fw fa-indent' title='indent'></i></button>",
+        "<i class='fa fa-fw fa-square-full'></i>",
+        "<button id=", t, "-print><i class='fa fa-fw fa-print' title='print'></i></button>",
         "<i class='fa fa-fw fa-square-full'></i>",
         "<span><select id=", t, "Font name=sel size=1  tabindex=-1 style='font-size:1em'>",
         "<option></option> ",
@@ -149,9 +152,15 @@ function createEditor() {
         }
     }
     function editCommand(e) {
+        var task;
         stopBubble(e);
         restoreSelection();
-        iframe.contentDocument.execCommand(this.id.split('-')[1], false, null);
+        task = this.id.split('-')[1];
+        if (task === 'print' && typeof iframe.contentWindow.print === 'function') {
+            iframe.contentWindow.print();
+        } else {
+            iframe.contentDocument.execCommand(task, false, null);
+        }
     }
     function foreColor(e) {
         stopBubble(e);
