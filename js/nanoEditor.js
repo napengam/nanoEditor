@@ -1,14 +1,13 @@
-/*!
- * nanoEditor.js
- * http://hgsweb.de/
- * MIT licensed
- *
- * based on work done in 
- * 
- * openwysiwyg at  http://openwebware.com/ 
- * TyniEditor  at http://www.scriptiny.com/2010/02/javascript-wysiwyg-editor/
- * and documentation found at http://help.dottoro.com/larpvnhw.php
- */
+//
+// * nanoEditor.js
+// * http://hgsweb.de/
+// * MIT licensed
+// *
+// * based on work done in 
+// * 
+// * openwysiwyg at  http://openwebware.com/ 
+// *
+// *
 function createEditor() {
     'use strict';
 
@@ -43,6 +42,8 @@ function createEditor() {
         {'label': '-Justifyright', 'event': 'click', 'action': editCommand},
         {'label': '-Justifyfull', 'event': 'click', 'action': editCommand},
         {'label': '-Justifycenter', 'event': 'click', 'action': editCommand},
+        {'label': '-outdent', 'event': 'click', 'action': editCommand},
+        {'label': '-indent', 'event': 'click', 'action': editCommand},
         {'label': 'save', 'event': 'click', 'action': saveContent},
         {'label': 'Color', 'event': 'change', 'action': foreColor},
         {'label': 'close', 'event': 'click', 'action': closeEditor},
@@ -73,6 +74,9 @@ function createEditor() {
         "<button id=", t, "-Justifyfull><i class='fa fa-fw fa-align-justify' title='align full'></i></button>",
         "<button id=", t, "-Justifycenter><i class='fa fa-fw fa-align-center' title='align center'></i></button>",
         "<i class='fa fa-fw fa-square-full'></i>",
+        "<button id=", t, "-outdent><i class='fa fa-fw fa-outdent' title='outdent'></i></button>",
+        "<button id=", t, "-indent><i class='fa fa-fw fa-indent' title='indent'></i></button>",
+        "<i class='fa fa-fw fa-square-full'></i>",
         "<span><select id=", t, "Font name=sel size=1  tabindex=-1 style='font-size:1em'>",
         "<option></option> ",
         "<option value=Courier selected>Courier</option> ",
@@ -94,6 +98,7 @@ function createEditor() {
         "<i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-undo ><i class='fa fa-fw fa-undo' title='undo'></i></button>",
         "<button id=", t, "Image ><i class='fa fa-fw fa-image' title='Picture'></i></button>",
+        "<i class='fa fa-fw fa-square-full'></i>",
         "<button  style=''  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
         "</td></tr>",
         "<tr><td><iframe style='width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
@@ -217,13 +222,13 @@ function createEditor() {
 
 
     }
-    function attacheEditor(obj, config) {
+    function attacheEditor(config) {
         var val;
         closeEditor();
-        val = obj.innerHTML;
+        val = this.innerHTML;
         innerHTML = val;
-        obj.innerHTML = '';
-        obj.appendChild(uidiv);
+        this.innerHTML = '';
+        this.appendChild(uidiv);
         if (typeof config !== 'undefined') {
             cfg = config;
         }
