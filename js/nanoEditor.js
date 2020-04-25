@@ -105,7 +105,8 @@ function createEditor(config) {
         "<button  style=''  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
         "</td></tr>",
         "<tr><td><iframe style='resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
-        "</table>"].join('');
+        "</table>"
+    ].join('');
     t = t.toString();
     configMenu.forEach(function (item) {
         document.getElementById(t + item.label).addEventListener(item.event, item.action, false);
@@ -114,10 +115,9 @@ function createEditor(config) {
     iframe.style.border = '0px';
     docx = iframe.contentDocument;
     docx.open();
-    docx.write('');
+    docx.write();
     docx.close();
     docx.body.contentEditable = true;
-    docx.contentEditable = true;
     uidiv.style.display = 'none';
     uidiv.onclick = stopBubble; // keep all (click-)events inside the editor 
     uidiv.onfocus = stopBubble;
@@ -127,7 +127,7 @@ function createEditor(config) {
             return;
         }
         var dz, node = document.createElement('span');
-        node.innerHTML = "&nbsp;<i style='border 1px blue'>DROPZONEIMAGE</i>&nbsp;";
+        node.innerHTML = "&nbsp;<i title='Drop picture here'>DROPZONE</i>&nbsp;";
         node.className = 'dropZone';
         insertNodeAtSelection(node);
         dz = iframe.contentDocument.querySelectorAll('.dropZone');
@@ -254,8 +254,8 @@ function createEditor(config) {
     }
     function insertNodeAtSelection(insertNode) {
 
-        var doc, sel, range, container, pos, textBefore, textAfter,
-                afterNode, beforeNode, textNode, text;
+        var doc, sel, range, startContainer, pos, textBefore, textAfter,
+                afterNode, beforeNode, textNode, text, rangeNew;
         // get editor document
         if (iframe.contentDocument.body.innerText === '') {
             iframe.contentDocument.body.innerHTML = '&nbsp;';
@@ -269,57 +269,45 @@ function createEditor(config) {
         // deselect everything
         sel.removeAllRanges();
         // remove content of current selection from document
-        range.deleteContents();
+        //range.deleteContents();
         // get location of current selection
-        container = range.startContainer;
+        startContainer = range.startContainer;
         pos = range.startOffset;
         // make a new range for the new selection
-        range = doc.createRange();
-        if (container.nodeType === 3 && insertNode.nodeType === 3) {
-// if we insert text in a textnode, do optimized insertion
-            container.insertData(pos, insertNode.data);
-            // put cursor after inserted text
-            range.setEnd(container, pos + insertNode.length);
-            range.setStart(container, pos + insertNode.length);
+        rangeNew = doc.createRange();
+
+        if (startContainer.nodeType === 3) {
+            // when inserting into a textnode
+            // we create 2 new textnodes
+            // and put the insertNode in between
+            textNode = startContainer;
+            startContainer = textNode.parentNode;
+            text = textNode.nodeValue;
+            // text before the split
+            textBefore = text.substr(0, pos);
+            // text after the split
+            textAfter = text.substr(pos);
+            beforeNode = document.createTextNode(textBefore);
+            afterNode = document.createTextNode(textAfter);
+            // insert the 3 new nodes before the old one
+            startContainer.insertBefore(afterNode, textNode);
+            startContainer.insertBefore(insertNode, afterNode);
+            startContainer.insertBefore(beforeNode, insertNode);
+            // remove the old node
+            startContainer.removeChild(textNode);
         } else {
-
-
-            if (container.nodeType === 3) {
-// when inserting into a textnode
-// we create 2 new textnodes
-// and put the insertNode in between
-                textNode = container;
-                container = textNode.parentNode;
-                text = textNode.nodeValue;
-                // text before the split
-                textBefore = text.substr(0, pos);
-                // text after the split
-                textAfter = text.substr(pos);
-                beforeNode = document.createTextNode(textBefore);
-                afterNode = document.createTextNode(textAfter);
-                // insert the 3 new nodes before the old one
-                container.insertBefore(afterNode, textNode);
-                container.insertBefore(insertNode, afterNode);
-                container.insertBefore(beforeNode, insertNode);
-                // remove the old node
-                container.removeChild(textNode);
-            } else {
-// else simply insert the node
-                afterNode = container.childNodes[pos];
-                //container.insertBefore(insertNode, afterNode);
-                container.appendChild(insertNode);
-                return insertNode;
-            }
-
-            try {
-                range.setEnd(afterNode, 0);
-                range.setStart(afterNode, 0);
-            } catch (e) {
-// alert(e);
-            }
+            // else simply insert the node
+            afterNode = startContainer.childNodes[pos];
+            //startContainer.insertBefore(insertNode, afterNode);
+            startContainer.appendChild(insertNode);
+            return insertNode;
         }
-
-//sel.addRange(range);
+        try {
+            rangeNew.setEnd(afterNode, 0);
+            rangeNew.setStart(afterNode, 0);
+        } catch (e) {
+// alert(e);
+        }
         return insertNode;
     }
     function uploadFiles(dropZoneId, formId, dialogs) {

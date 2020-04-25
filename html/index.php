@@ -21,16 +21,14 @@
     </head>
     <body>
 
-        <p>Just click in a cell and the editor will open <br>
-            Everything you need is within the source of this page <p>                          
-        <table border='1' id='editTable'>
-            <tr><th>------------Head1----------------</th><th >------------------Head2----------------------</th></tr>
-            <tr><td class='editMe'><h1>ffffffffffffff</h1></td><td class='editMe'>bbbbbbbbbb</td></tr>
-            <tr><td class='editMe'>ffffffffffffff</td><td class='editMe'>bbbbbbbbbb</td></tr>
-            <tr><th>On sale today</th><th > Dear Diary </th></tr>
-            <tr><td class='editMe'>ffffffffffffff</td><td class='editMe'>bbbbbbbbbb</td></tr>
-        </table><p>
-        <div id="divdiv" class='editMe' style="display:inline-block">click <b>me</b> here </div>
+        <div id="divdiv" class='editMe' style="display:inline-block">
+            <H1> Image upload is not configured in this demo </h1> 
+            
+            <h2>Sources are located at <a href="https://github.com/napengam/nanoEditor" target='nanoEditor'>https://github.com/napengam/nanoEditor</a> </h2>
+            <p>
+                <b>click me</b>
+            </p>
+        </div>
 
     </body>
 </html>
