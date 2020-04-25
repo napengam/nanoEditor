@@ -8,14 +8,12 @@
 // * openwysiwyg at  http://openwebware.com/ 
 // *
 // *
-function createEditor() {
+function createEditor(config) {
     'use strict';
-
     var
             docx, d, t, iframe, uidiv, self, cfg, thisDropZone,
             configMenu = [], innerHTML, storedSelections,
-            saveCallback, closeCallback;
-
+            saveCallback, closeCallback, theForm;
     //*
     // * do we allready exist ?
     //
@@ -23,13 +21,16 @@ function createEditor() {
     if (uidiv) {
         return uidiv.aaaself;
     }
-    //*
-    //* create
-    //
+    cfg = {'imageUploadPath': ''};
+    if (typeof config !== 'undefined' && typeof config === 'object') {
+        cfg = Object.assign({'imageUploadPath': ''}, config);
+    }
+//*
+//* create
+//
     d = new Date();
-    t = d.getTime();// used to make ids  somehow 'unique' 
+    t = d.getTime(); // used to make ids  somehow 'unique' 
     uidiv = document.createElement('DIV');
-
     configMenu = [
         {'label': 'saveselect', 'event': 'mouseover', 'action': saveSelection},
         {'label': '-bold', 'event': 'click', 'action': editCommand},
@@ -52,7 +53,6 @@ function createEditor() {
         {'label': 'Font', 'event': 'change', 'action': fontName},
         {'label': 'Image', 'event': 'click', 'action': insertImageDropZone}
     ];
-
     document.body.appendChild(uidiv);
     uidiv.classList.add('uidivuidiv');
     uidiv.style.border = '1px solid gray';
@@ -104,32 +104,28 @@ function createEditor() {
         "<i class='fa fa-fw fa-square-full'></i>",
         "<button  style=''  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
         "</td></tr>",
-        "<tr><td><iframe style='width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
+        "<tr><td><iframe style='resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
         "</table>"].join('');
-
-
     t = t.toString();
-
     configMenu.forEach(function (item) {
         document.getElementById(t + item.label).addEventListener(item.event, item.action, false);
     });
-
     iframe = document.getElementById(t + 'nanoContent');
     iframe.style.border = '0px';
-
     docx = iframe.contentDocument;
     docx.open();
     docx.write('');
     docx.close();
     docx.body.contentEditable = true;
     docx.contentEditable = true;
-
     uidiv.style.display = 'none';
     uidiv.onclick = stopBubble; // keep all (click-)events inside the editor 
     uidiv.onfocus = stopBubble;
     uidiv.onmouseover = stopBubble;
-
     function insertImageDropZone() {
+        if (cfg.imageUploadPath === '') {
+            return;
+        }
         var dz, node = document.createElement('span');
         node.innerHTML = "&nbsp;<i style='border 1px blue'>DROPZONEIMAGE</i>&nbsp;";
         node.className = 'dropZone';
@@ -224,23 +220,22 @@ function createEditor() {
         docx.contentEditable = true;
         uidiv.style.display = 'inline-block';
         docx.body.focus();
-        dz = docx.querySelectorAll('.dropZone');
-        dz.forEach((node) => {
-            uploadFiles(node, '', '');
-        });
+        if (cfg.imageUploadPath) {
+            dz = docx.querySelectorAll('.dropZone');
+            dz.forEach((node) => {
+                uploadFiles(node, '', '');
+            });
+        }
 
 
     }
-    function attacheEditor(config) {
+    function attacheEditor() {
         var val;
         closeEditor();
         val = this.innerHTML;
         innerHTML = val;
         this.innerHTML = '';
         this.appendChild(uidiv);
-        if (typeof config !== 'undefined') {
-            cfg = config;
-        }
         setContent(val);
     }
     function onSaveCallback(Callback) {
@@ -261,7 +256,6 @@ function createEditor() {
 
         var doc, sel, range, container, pos, textBefore, textAfter,
                 afterNode, beforeNode, textNode, text;
-
         // get editor document
         if (iframe.contentDocument.body.innerText === '') {
             iframe.contentDocument.body.innerHTML = '&nbsp;';
@@ -269,26 +263,20 @@ function createEditor() {
         doc = iframe.contentDocument;
         // get current selection
         sel = iframe.contentDocument.getSelection();
-
         // get the first range of the selection
         // (there's almost always only one range)
         range = sel.getRangeAt(0);
-
         // deselect everything
         sel.removeAllRanges();
-
         // remove content of current selection from document
         range.deleteContents();
-
         // get location of current selection
         container = range.startContainer;
         pos = range.startOffset;
-
         // make a new range for the new selection
         range = doc.createRange();
-
         if (container.nodeType === 3 && insertNode.nodeType === 3) {
-            // if we insert text in a textnode, do optimized insertion
+// if we insert text in a textnode, do optimized insertion
             container.insertData(pos, insertNode.data);
             // put cursor after inserted text
             range.setEnd(container, pos + insertNode.length);
@@ -297,30 +285,26 @@ function createEditor() {
 
 
             if (container.nodeType === 3) {
-                // when inserting into a textnode
-                // we create 2 new textnodes
-                // and put the insertNode in between
+// when inserting into a textnode
+// we create 2 new textnodes
+// and put the insertNode in between
                 textNode = container;
                 container = textNode.parentNode;
                 text = textNode.nodeValue;
-
                 // text before the split
                 textBefore = text.substr(0, pos);
                 // text after the split
                 textAfter = text.substr(pos);
-
                 beforeNode = document.createTextNode(textBefore);
                 afterNode = document.createTextNode(textAfter);
-
                 // insert the 3 new nodes before the old one
                 container.insertBefore(afterNode, textNode);
                 container.insertBefore(insertNode, afterNode);
                 container.insertBefore(beforeNode, insertNode);
-
                 // remove the old node
                 container.removeChild(textNode);
             } else {
-                // else simply insert the node
+// else simply insert the node
                 afterNode = container.childNodes[pos];
                 //container.insertBefore(insertNode, afterNode);
                 container.appendChild(insertNode);
@@ -331,23 +315,23 @@ function createEditor() {
                 range.setEnd(afterNode, 0);
                 range.setStart(afterNode, 0);
             } catch (e) {
-                // alert(e);
+// alert(e);
             }
         }
 
-        //sel.addRange(range);
+//sel.addRange(range);
         return insertNode;
     }
     function uploadFiles(dropZoneId, formId, dialogs) {
         'use strict';
         var
                 request = new XMLHttpRequest(),
-                theForm = document.getElementById(formId),
                 dropZone, div,
                 uploadedFiles;
         // 
         //    add drop handlers
         //
+        theForm = document.getElementById(formId);
         if (typeof dropZoneId === 'string') {
             dropZone = document.getElementById(dropZoneId);
         } else {
@@ -363,18 +347,15 @@ function createEditor() {
         //
         if (!theForm) {
             div = document.createElement('DIV');
-            div.innerHTML = ["<form name='upload' enctype='multipart/form-data' action='../allMyScripts/php/upload_save_2.php' method='POST'>",
+            div.innerHTML = ["<form name='upload' enctype='multipart/form-data' action='../php/upload_save_2.php' method='POST'>",
                 "<input type='hidden' name='MAX_FILE_SIZE' value='123456789'>",
-                "<input type='hidden' name='id' value='" + cfg.id + "'>",
-                "<input type='hidden' name='table' value='" + cfg.dbtable + "'>",
-                "<input type='hidden' name='field' value='" + cfg.name + "'>",
-                "<input type='hidden' name='path' value='" + cfg.path + "'>",
-                "<input type='hidden' name='root' value='" + '' + "'>",
+                "<input type='hidden' name='path' value='", cfg.imageUploadPath, "'>",
                 "<input name='uploadedfile' type='file'>",
                 "<input name='submit' value='Speichern'>",
                 "</form>"].join('');
             document.body.appendChild(div);
             theForm = div.firstChild;
+            theForm.style.display = 'none';
         }
 
         [].some.call(theForm.elements, function (elem) {
@@ -384,8 +365,6 @@ function createEditor() {
             }
             return false;
         });
-
-
         function dropHandler(ev) {
             var file, formData, allow;
             // Prevent default behavior (Prevent file from being opened)
@@ -437,10 +416,10 @@ function createEditor() {
         function removeDragData(ev) {
 
             if (ev.dataTransfer.items) {
-                // Use DataTransferItemList interface to remove the drag data
+// Use DataTransferItemList interface to remove the drag data
                 ev.dataTransfer.items.clear();
             } else {
-                // Use DataTransfer interface to remove the drag data
+// Use DataTransfer interface to remove the drag data
                 ev.dataTransfer.clearData();
             }
         }
