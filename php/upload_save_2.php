@@ -23,7 +23,7 @@ if (isset($_POST['submit']) && $_POST['submit'] == "Speichern") {
         $path = $_POST['path'];
         $target_path = $path . time() . '_' . basename($_FILES['uploadedfile']['name']);
         if (file_exists($target_path)) {
-            @unlink($target_path);
+            unlink($target_path);
         }
         if (move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $target_path)) {
             $hw = getimagesize($target_path);
