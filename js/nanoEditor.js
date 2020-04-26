@@ -105,6 +105,7 @@ function createEditor(config) {
         "<button  style=''  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
         "</td></tr>",
         "<tr><td><iframe style='resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
+        "<tr><td style='border-top:1px solid black' class='formatLine'>where am ?</td></tr>",
         "</table>"
     ].join('');
     t = t.toString();
@@ -122,6 +123,10 @@ function createEditor(config) {
     uidiv.onclick = stopBubble; // keep all (click-)events inside the editor 
     uidiv.onfocus = stopBubble;
     uidiv.onmouseover = stopBubble;
+
+
+
+
     function insertImageDropZone() {
         if (cfg.imageUploadPath === '') {
             return;
@@ -209,6 +214,9 @@ function createEditor(config) {
     }
     function setContent(content) {
         var dz, docx = iframe.contentDocument;
+        if (content === '') {
+            content = '&nbsp;'
+        }
         docx.open();
         docx.write(content);
         docx.close();
@@ -226,7 +234,7 @@ function createEditor(config) {
                 uploadFiles(node, '', '');
             });
         }
-
+        docx.body.onmouseup = whereAmI;
 
     }
     function attacheEditor() {
@@ -254,60 +262,39 @@ function createEditor(config) {
     }
     function insertNodeAtSelection(insertNode) {
 
-        var doc, sel, range, startContainer, pos, textBefore, textAfter,
+        var sel, range, startContainer, pos, textBefore, textAfter,
                 afterNode, beforeNode, textNode, text, rangeNew;
-        // get editor document
-        if (iframe.contentDocument.body.innerText === '') {
-            iframe.contentDocument.body.innerHTML = '&nbsp;';
-        }
-        doc = iframe.contentDocument;
-        // get current selection
+
+
         sel = iframe.contentDocument.getSelection();
-        // get the first range of the selection
-        // (there's almost always only one range)
         range = sel.getRangeAt(0);
-        // deselect everything
         sel.removeAllRanges();
-        // remove content of current selection from document
-        //range.deleteContents();
-        // get location of current selection
+        // range.deleteContents();
         startContainer = range.startContainer;
         pos = range.startOffset;
-        // make a new range for the new selection
-        rangeNew = doc.createRange();
+
+        rangeNew = iframe.contentDocument.createRange();
 
         if (startContainer.nodeType === 3) {
-            // when inserting into a textnode
-            // we create 2 new textnodes
-            // and put the insertNode in between
             textNode = startContainer;
             startContainer = textNode.parentNode;
             text = textNode.nodeValue;
-            // text before the split
             textBefore = text.substr(0, pos);
-            // text after the split
             textAfter = text.substr(pos);
             beforeNode = document.createTextNode(textBefore);
             afterNode = document.createTextNode(textAfter);
-            // insert the 3 new nodes before the old one
             startContainer.insertBefore(afterNode, textNode);
             startContainer.insertBefore(insertNode, afterNode);
             startContainer.insertBefore(beforeNode, insertNode);
-            // remove the old node
             startContainer.removeChild(textNode);
         } else {
-            // else simply insert the node
             afterNode = startContainer.childNodes[pos];
-            //startContainer.insertBefore(insertNode, afterNode);
             startContainer.appendChild(insertNode);
             return insertNode;
         }
-        try {
-            rangeNew.setEnd(afterNode, 0);
-            rangeNew.setStart(afterNode, 0);
-        } catch (e) {
-// alert(e);
-        }
+
+        rangeNew.setEnd(afterNode, 0);
+        rangeNew.setStart(afterNode, 0);
         return insertNode;
     }
     function uploadFiles(dropZoneId, formId, dialogs) {
@@ -411,6 +398,21 @@ function createEditor(config) {
                 ev.dataTransfer.clearData();
             }
         }
+    }
+    function whereAmI() {
+        var start, sel, range, path = [];
+        sel = iframe.contentDocument.getSelection();
+        range = sel.getRangeAt(0);
+        start = range.startContainer;
+        do {
+            if (typeof start.tagName !== 'undefined') {
+                path.push(start.tagName)
+            }
+            start = start.parentNode;
+        } while (start.tagName !== 'BODY');
+        path.push('BODY');
+
+        uidiv.querySelector('.formatLine').innerHTML = path.reverse().join('>');
     }
     self = {// reveal these functions to the outside
         closeEditor: closeEditor,
