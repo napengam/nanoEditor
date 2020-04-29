@@ -51,7 +51,9 @@ function createEditor(config) {
         {'label': 'close', 'event': 'click', 'action': closeEditor},
         {'label': 'Size', 'event': 'change', 'action': fontSize},
         {'label': 'Font', 'event': 'change', 'action': fontName},
-        {'label': 'Image', 'event': 'click', 'action': insertImageDropZone}
+        {'label': 'Image', 'event': 'click', 'action': insertImageDropZone},
+        {'label': 'Link', 'event': 'click', 'action': enterLink},
+        {'label': 'saveLink', 'event': 'click', 'action': saveLink}
     ];
     document.body.appendChild(uidiv);
     uidiv.classList.add('uidivuidiv');
@@ -61,7 +63,8 @@ function createEditor(config) {
     uidiv.style.width = 'auto';
     //uidiv.style.minWidth = '600px';
     uidiv.id = t + 'Div';
-    uidiv.innerHTML = ["<table style='border-collapse:collapse'> <tr style='border-bottom:1px solid gray' id=", t, "saveselect><td>",
+    uidiv.innerHTML = ["<table style='border-collapse:collapse'>",
+        "<tr style='border-bottom:1px solid gray' id=", t, "saveselect><td>",
         "<button id=", t, "save><i class='fa fa-fw fa-save' title='save&close'></i></button>",
         "<i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-bold ><i class='fa fa-fw fa-bold' title='Bold'></i></button>",
@@ -101,8 +104,13 @@ function createEditor(config) {
         "<i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-undo ><i class='fa fa-fw fa-undo' title='undo'></i></button>",
         "<button id=", t, "Image ><i class='fa fa-fw fa-image' title='Picture'></i></button>",
+        "<button id=", t, "Link ><i class='fa fa-fw fa-link' title='Link'></i></button>",
         "<i class='fa fa-fw fa-square-full'></i>",
         "<button  style=''  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
+        "</td></tr>",
+        "<tr><td id='enterLink' style='visibility:hidden;text-align:center'>",
+        "<input type=text placeholder='enter URL' size=80 maxlegth=265>",
+        "<button id=", t, "saveLink ><i class='fa fa-fw fa-save' title='save Link'></i></button>",
         "</td></tr>",
         "<tr><td><iframe style='resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
         "<tr><td style='border-top:1px solid black' class='formatLine'>where am ?</td></tr>",
@@ -123,12 +131,39 @@ function createEditor(config) {
     uidiv.onclick = stopBubble; // keep all (click-)events inside the editor 
     uidiv.onfocus = stopBubble;
     uidiv.onmouseover = stopBubble;
+    function enterLink() {
+        var el = uidiv.querySelector('#enterLink'), sel;
+        if (el.style.visibility === 'visible') {
+            el.style.visibility = 'hidden';
+            return;
+        }
+        sel = iframe.contentDocument.getSelection();
+        if (sel.type === 'Caret' || sel.type === 'None') {
+            return;
+        }
+        el.style.visibility = 'visible';
+        el.firstChild.focus();
+    }
 
-
-
+    function saveLink() {
+        var a, el = uidiv.querySelector('#enterLink'), sel;
+        if (el.style.visibility === 'visible') {
+            el.style.visibility = 'hidden';
+        }
+        //sel = iframe.contentDocument.getSelection();
+        a = document.createElement('A');
+        a.href = el.firstChild.value;
+        a.innerHTML = '';
+        insertNodeAtSelection(a);
+    }
 
     function insertImageDropZone() {
+        var sel;
         if (cfg.imageUploadPath === '') {
+            return;
+        }
+        sel = iframe.contentDocument.getSelection();
+        if (sel.type === 'None') {
             return;
         }
         var dz, node = document.createElement('span');
@@ -235,7 +270,6 @@ function createEditor(config) {
             });
         }
         docx.body.onmouseup = whereAmI;
-
     }
     function attacheEditor() {
         var val;
@@ -260,41 +294,53 @@ function createEditor(config) {
             closeCallback = '';
         }
     }
+
     function insertNodeAtSelection(insertNode) {
 
-        var sel, range, startContainer, pos, textBefore, textAfter,
+        var sel, range, startContainer, pos, textBefore, textAfter, storedSel,
                 afterNode, beforeNode, textNode, text, rangeNew;
-
-
         sel = iframe.contentDocument.getSelection();
+
+        sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
+        sel.anchorNode.thisIsTheStartContainer = 'start';
+        sel.focusNode.parentNode.thisIsTheEndNode = 'end';
+        sel.focusNode.thisIsTheEndContainer = 'end';
+
+        if (insertNode.tagName === 'A') {
+            if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
+                return;
+            }
+            insertNode.skipThisNode = true;
+            storedSelections = sel.getRangeAt(0);
+            copyAllFormSelection(sel, insertNode);
+
+        }
+
         range = sel.getRangeAt(0);
-        sel.removeAllRanges();
-        // range.deleteContents();
+
         startContainer = range.startContainer;
         pos = range.startOffset;
-
-        rangeNew = iframe.contentDocument.createRange();
-
         if (startContainer.nodeType === 3) {
             textNode = startContainer;
             startContainer = textNode.parentNode;
             text = textNode.nodeValue;
             textBefore = text.substr(0, pos);
             textAfter = text.substr(pos);
+
             beforeNode = document.createTextNode(textBefore);
             afterNode = document.createTextNode(textAfter);
+
             startContainer.insertBefore(afterNode, textNode);
             startContainer.insertBefore(insertNode, afterNode);
             startContainer.insertBefore(beforeNode, insertNode);
+
             startContainer.removeChild(textNode);
         } else {
             afterNode = startContainer.childNodes[pos];
             startContainer.appendChild(insertNode);
-            return insertNode;
+
         }
 
-        rangeNew.setEnd(afterNode, 0);
-        rangeNew.setStart(afterNode, 0);
         return insertNode;
     }
     function uploadFiles(dropZoneId, formId, dialogs) {
@@ -382,7 +428,7 @@ function createEditor(config) {
                 if (dialogs) {
                     dialogs.infoDialog(js.result, [{label: 'ok', action: {}}]);
                 }
-                thisDropZone.innerHTML = "<span  class='dropZone'> <img style='width:" + js.width + "px;height:" + js.height + "px' src='" + js.result + "'></span>";
+                thisDropZone.innerHTML = "<img style='width:" + js.width + "px;height:" + js.height + "px' src='" + js.result + "'>";
             } catch (e) {
                 return;
             }
@@ -411,9 +457,89 @@ function createEditor(config) {
             start = start.parentNode;
         } while (start.tagName !== 'BODY');
         path.push('BODY');
-
         uidiv.querySelector('.formatLine').innerHTML = path.reverse().join('>');
     }
+
+    function copyAllFormSelection(sel, newNode) {
+
+        var nl = [];
+        nl = sel.anchorNode.parentNode.childNodes;
+        walkNodes(newNode, nl, sel);
+        return;
+    }
+
+    function walkNodes(parent, nodeList, selorg) {
+        var i, what, nli, n = nodeList.length, start, end, sel = {};
+
+
+        what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
+        if (what === 2) { // left  to right selection
+
+            selorg.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
+            selorg.anchorNode.thisIsTheStartContainer = '';
+            selorg.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
+            selorg.focusNode.thisIsTheEndContainer = '';
+
+            sel.anchorNode = selorg.focusNode;
+            sel.anchorOffset = selorg.focusOffset;
+            sel.focusNode = selorg.anchorNode;
+            sel.focusOffset = selorg.anchorOffset;
+
+            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
+            sel.anchorNode.thisIsTheStartContainer = 'start';
+            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
+            sel.focusNode.thisIsTheEndContainer = 'end';
+
+            nodeList = sel.anchorNode.parentNode.childNodes;
+
+        } else {
+            sel = selorg;
+        }
+        // find start conatiner
+        for (i = 0; i < n; i++) {
+            nli = nodeList[i];
+            if (nli.thisIsTheStartContainer === 'start') {
+                break;
+            }
+        }
+        // copy all from start conatiner to end
+        for (; i < n; i++) {
+            nli = nodeList[i];
+            if (nli.skipThisNode) {
+                continue;
+            }
+            if (nli.nodeType === 3) {
+                if (nli.thisIsTheStartContainer === 'start') {
+                    nli.thisIsTheStartContainer = '';
+                    if (nli.thisIsTheEndContainer === 'end') {
+                        nli.thisIsTheEndContainer = '';
+                        parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset, sel.focusOffset - sel.anchorOffset)));
+                        nli.data = nli.data.substr(0, sel.anchorOffset);
+                        break
+                    }
+                    parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset)));
+                    nli.data = nli.data.substr(0, sel.anchorOffset);
+
+                } else if (nli.thisIsTheEndContainer === 'end') {
+                    nli.thisIsTheEndContainer = '';
+                    parent.appendChild(document.createTextNode(nli.data.substr(0, sel.focusOffset)));
+                    nli.data = nli.data.substr(sel.focusOffset, nli.data.length - sel.focusOffset);
+                    break;
+                } else {
+                    parent.appendChild(nli);
+                    i--;
+                    n--;
+                }
+            } else {
+                parent.appendChild(nli);
+                i--;
+                n--;
+            }
+        }
+        return parent;
+    }
+
+
     self = {// reveal these functions to the outside
         closeEditor: closeEditor,
         attacheEditor: attacheEditor,

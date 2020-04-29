@@ -22,7 +22,7 @@
     <body>
 
         <div id="divdiv" class='editMe' style="display:inline-block">
-            <H1> Image upload is not configured in this demo </h1> 
+            <H1> Image upload is not <i>configured</i> in this demo </h1> 
             
             <h2>Sources are located at <a href="https://github.com/napengam/nanoEditor" target='nanoEditor'>https://github.com/napengam/nanoEditor</a> </h2>
             <p>
