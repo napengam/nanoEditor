@@ -61,7 +61,7 @@ enter the URL. Click on the the save button at the right side of the input field
 This will turn your selection into a link. if you click the link button again this will  
 cancel the action.
 
-![createlink](img/createlink.JPG)
+![createlink](img/createLink.JPG)
 
 To edit a HREF-part of a link, just click inside the link and press the link putton.  
 This will load the URL into the input field.
