@@ -154,6 +154,7 @@ function createEditor(config) {
         a = document.createElement('A');
         a.href = el.firstChild.value;
         a.innerHTML = '';
+        a.id = 'veryNewLink';
         insertNodeAtSelection(a);
     }
 
@@ -306,6 +307,12 @@ function createEditor(config) {
         sel.focusNode.parentNode.thisIsTheEndNode = 'end';
         sel.focusNode.thisIsTheEndContainer = 'end';
 
+
+        range = sel.getRangeAt(0);
+        startContainer = range.startContainer;
+        pos = range.startOffset;
+
+
         if (insertNode.tagName === 'A') {
             if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
                 return;
@@ -315,11 +322,6 @@ function createEditor(config) {
             copyAllFormSelection(sel, insertNode);
 
         }
-
-        range = sel.getRangeAt(0);
-
-        startContainer = range.startContainer;
-        pos = range.startOffset;
         if (startContainer.nodeType === 3) {
             textNode = startContainer;
             startContainer = textNode.parentNode;
@@ -469,7 +471,7 @@ function createEditor(config) {
     }
 
     function walkNodes(parent, nodeList, selorg) {
-        var i, what, nli, n = nodeList.length, start, end, sel = {};
+        var i, what, nli, n = nodeList.length, start, end, tmp, sel = {};
 
 
         what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
@@ -513,8 +515,15 @@ function createEditor(config) {
                     nli.thisIsTheStartContainer = '';
                     if (nli.thisIsTheEndContainer === 'end') {
                         nli.thisIsTheEndContainer = '';
-                        parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset, sel.focusOffset - sel.anchorOffset)));
-                        nli.data = nli.data.substr(0, sel.anchorOffset);
+                        start = sel.anchorOffset;
+                        end = sel.focusOffset
+                        if (start > end) {
+                            tmp = start;
+                            start = end;
+                            end = tmp;
+                        }
+                        parent.appendChild(document.createTextNode(nli.data.substr(start, end - start)));
+                        nli.data = nli.data.substr(0, start) + nli.data.substr(end);
                         break
                     }
                     parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset)));
