@@ -12,7 +12,7 @@ function createEditor(config) {
     'use strict';
     var
             docx, d, t, iframe, uidiv, self, cfg, thisDropZone,
-            configMenu = [], innerHTML, storedSelections,
+            configMenu = [], innerHTML, storedSelections, currentLink = '',
             saveCallback, closeCallback, theForm;
     //*
     // * do we allready exist ?
@@ -52,7 +52,7 @@ function createEditor(config) {
         {'label': 'Size', 'event': 'change', 'action': fontSize},
         {'label': 'Font', 'event': 'change', 'action': fontName},
         {'label': 'Image', 'event': 'click', 'action': insertImageDropZone},
-        {'label': 'Link', 'event': 'click', 'action': enterLink},
+        {'label': 'Link', 'event': 'click', 'action': enterEditLink},
         {'label': 'saveLink', 'event': 'click', 'action': saveLink}
     ];
     document.body.appendChild(uidiv);
@@ -113,7 +113,7 @@ function createEditor(config) {
         "<button id=", t, "saveLink ><i class='fa fa-fw fa-save' title='save Link'></i></button>",
         "</td></tr>",
         "<tr><td><iframe style='resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
-        "<tr><td style='border-top:1px solid black' class='formatLine'>where am ?</td></tr>",
+        "<tr><td style='border-top:1px solid black' class='formatLine'>where am I ?</td></tr>",
         "</table>"
     ].join('');
     t = t.toString();
@@ -131,14 +131,21 @@ function createEditor(config) {
     uidiv.onclick = stopBubble; // keep all (click-)events inside the editor 
     uidiv.onfocus = stopBubble;
     uidiv.onmouseover = stopBubble;
-    function enterLink() {
-        var el = uidiv.querySelector('#enterLink'), sel;
+
+    function enterEditLink() {
+        var at = {}, el = uidiv.querySelector('#enterLink'), sel;
         if (el.style.visibility === 'visible') {
             el.style.visibility = 'hidden';
+            currentLink = '';
             return;
         }
-        sel = iframe.contentDocument.getSelection();
-        if (sel.type === 'Caret' || sel.type === 'None') {
+        el.firstChild.value = '';
+        at = isElement('A');
+        if (at.a) {
+            el.firstChild.value = at.a.href;
+            currentLink = at.a;
+
+        } else if (at.selType === 'None') {
             return;
         }
         el.style.visibility = 'visible';
@@ -146,16 +153,21 @@ function createEditor(config) {
     }
 
     function saveLink() {
-        var a, el = uidiv.querySelector('#enterLink'), sel;
+        var a, el = uidiv.querySelector('#enterLink');
         if (el.style.visibility === 'visible') {
             el.style.visibility = 'hidden';
+
         }
-        //sel = iframe.contentDocument.getSelection();
-        a = document.createElement('A');
-        a.href = el.firstChild.value;
-        a.innerHTML = '';
-        a.id = 'veryNewLink';
-        insertNodeAtSelection(a);
+        if (currentLink) {
+            currentLink.href = uidiv.querySelector('#enterLink').firstChild.value;
+            currentLink = '';
+
+        } else {
+            a = document.createElement('A');
+            a.href = el.firstChild.value;
+            a.innerHTML = '';
+            insertNodeAtSelection(a);
+        }
     }
 
     function insertImageDropZone() {
@@ -320,7 +332,6 @@ function createEditor(config) {
             insertNode.skipThisNode = true;
             storedSelections = sel.getRangeAt(0);
             copyAllFormSelection(sel, insertNode);
-
         }
         if (startContainer.nodeType === 3) {
             textNode = startContainer;
@@ -461,7 +472,24 @@ function createEditor(config) {
         path.push('BODY');
         uidiv.querySelector('.formatLine').innerHTML = path.reverse().join('>');
     }
-
+    function isElement(tagName) {
+        var start, sel, range;
+        sel = iframe.contentDocument.getSelection();
+        if (sel.type !== 'Caret') {
+            return {'a': '', 'selType': sel.type};
+        }
+        range = sel.getRangeAt(0);
+        start = range.startContainer;
+        do {
+            if (typeof start.tagName !== 'undefined') {
+                if (tagName === start.tagName) {
+                    return {'a': start, 'selType': sel.type};
+                }
+            }
+            start = start.parentNode;
+        } while (start.tagName !== 'BODY');
+        return {'a': '', 'selType': sel.type};
+    }
     function copyAllFormSelection(sel, newNode) {
 
         var nl = [];
