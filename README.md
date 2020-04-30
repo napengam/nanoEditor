@@ -33,7 +33,7 @@ upload_save_2.php
 * ![upload](img/image.JPG) This button allows you to insert and uplaod images into your text.  
 
 
-### how image upload works
+### how image upload works 
 
 Place the curser anywhere in your text, then press the image button.  
 This will insert the word DROPZONE where the curser was located.
