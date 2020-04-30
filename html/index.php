@@ -12,7 +12,7 @@
                 var objects, nanoEdit = createEditor({'imageUploadPath': ''});
                 objects = document.body.querySelectorAll('.editMe');
                 [].forEach.call(objects, function (obj) {
-                    obj.onclick = nanoEdit.attacheEditor;
+                    obj.ondblclick = nanoEdit.attacheEditor;
                 });
             }
 
@@ -26,7 +26,7 @@
             
             <h2>Sources are located at <a href="https://github.com/napengam/nanoEditor" target='nanoEditor'>https://github.com/napengam/nanoEditor</a> </h2>
             <p>
-                <b>click me</b>
+                <b>double click me</b>
             </p>
         </div>
 

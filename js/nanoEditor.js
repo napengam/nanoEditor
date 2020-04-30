@@ -11,7 +11,7 @@
 function createEditor(config) {
     'use strict';
     var
-            docx, d, t, iframe, uidiv, self, cfg, thisDropZone,
+            docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML,
             configMenu = [], innerHTML, storedSelections, currentLink = '',
             saveCallback, closeCallback, theForm;
     //*
@@ -23,7 +23,7 @@ function createEditor(config) {
     }
     cfg = {'imageUploadPath': ''};
     if (typeof config !== 'undefined' && typeof config === 'object') {
-        cfg = Object.assign({'imageUploadPath': ''}, config);
+        cfg = Object.assign({'imageUploadPath': '', 'askOnExit': true}, config);
     }
 //*
 //* create
@@ -252,7 +252,7 @@ function createEditor(config) {
             uidiv.style.display = 'none';
             document.body.appendChild(uidiv);
             node.innerHTML = '';
-            node.innerHTML = innerHTML;
+            node.innerHTML = savedInnerHTML;
         }
         if (typeof closeCallback === 'function') {
             closeCallback();
@@ -283,13 +283,12 @@ function createEditor(config) {
         docx.body.onmouseup = whereAmI;
     }
     function attacheEditor() {
-        var val;
+
         closeEditor();
-        val = this.innerHTML;
-        innerHTML = val;
+        savedInnerHTML = this.innerHTML;
         this.innerHTML = '';
         this.appendChild(uidiv);
-        setContent(val);
+        setContent(savedInnerHTML);
     }
     function onSaveCallback(Callback) {
         if (typeof Callback === 'function') {
@@ -359,7 +358,7 @@ function createEditor(config) {
                     if (nli.thisIsTheEndContainer === 'end') {
                         nli.thisIsTheEndContainer = '';
                         start = sel.anchorOffset;
-                        end = sel.focusOffset
+                        end = sel.focusOffset;
                         if (start > end) {
                             tmp = start;
                             start = end;
@@ -397,7 +396,7 @@ function createEditor(config) {
         start = range.startContainer;
         do {
             if (typeof start.tagName !== 'undefined') {
-                path.push(start.tagName)
+                path.push(start.tagName);
             }
             start = start.parentNode;
         } while (start.tagName !== 'BODY');
@@ -559,17 +558,6 @@ function createEditor(config) {
                 thisDropZone.innerHTML = "<img style='width:" + js.width + "px;height:" + js.height + "px' src='" + js.result + "'>";
             } catch (e) {
                 return;
-            }
-        }
-
-        function removeDragData(ev) {
-
-            if (ev.dataTransfer.items) {
-// Use DataTransferItemList interface to remove the drag data
-                ev.dataTransfer.items.clear();
-            } else {
-// Use DataTransfer interface to remove the drag data
-                ev.dataTransfer.clearData();
             }
         }
     }
