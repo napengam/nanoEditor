@@ -156,12 +156,10 @@ function createEditor(config) {
         var a, el = uidiv.querySelector('#enterLink');
         if (el.style.visibility === 'visible') {
             el.style.visibility = 'hidden';
-
         }
         if (currentLink) {
             currentLink.href = uidiv.querySelector('#enterLink').firstChild.value;
             currentLink = '';
-
         } else {
             a = document.createElement('A');
             a.href = el.firstChild.value;
@@ -263,7 +261,7 @@ function createEditor(config) {
     function setContent(content) {
         var dz, docx = iframe.contentDocument;
         if (content === '') {
-            content = '&nbsp;'
+            content = '&nbsp;';
         }
         docx.open();
         docx.write(content);
@@ -308,12 +306,128 @@ function createEditor(config) {
         }
     }
 
+    function copyAllFormSelection(sel, newNode) {
+
+        var nl = [];
+        nl = sel.anchorNode.parentNode.childNodes;
+        walkNodes(newNode, nl, sel);
+        return;
+    }
+    function walkNodes(parent, nodeList, selorg) {
+        var i, what, nli, n = nodeList.length, start, end, tmp, sel = {};
+
+
+        what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
+        if (what === 2) { // left  to right selection
+
+            selorg.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
+            selorg.anchorNode.thisIsTheStartContainer = '';
+            selorg.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
+            selorg.focusNode.thisIsTheEndContainer = '';
+
+            sel.anchorNode = selorg.focusNode;
+            sel.anchorOffset = selorg.focusOffset;
+            sel.focusNode = selorg.anchorNode;
+            sel.focusOffset = selorg.anchorOffset;
+
+            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
+            sel.anchorNode.thisIsTheStartContainer = 'start';
+            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
+            sel.focusNode.thisIsTheEndContainer = 'end';
+
+            nodeList = sel.anchorNode.parentNode.childNodes;
+
+        } else {
+            sel = selorg;
+        }
+        // find start conatiner
+        for (i = 0; i < n; i++) {
+            nli = nodeList[i];
+            if (nli.thisIsTheStartContainer === 'start') {
+                break;
+            }
+        }
+        // copy all from start conatiner to end
+        for (; i < n; i++) {
+            nli = nodeList[i];
+            if (nli.skipThisNode) {
+                continue;
+            }
+            if (nli.nodeType === 3) {
+                if (nli.thisIsTheStartContainer === 'start') {
+                    nli.thisIsTheStartContainer = '';
+                    if (nli.thisIsTheEndContainer === 'end') {
+                        nli.thisIsTheEndContainer = '';
+                        start = sel.anchorOffset;
+                        end = sel.focusOffset
+                        if (start > end) {
+                            tmp = start;
+                            start = end;
+                            end = tmp;
+                        }
+                        parent.appendChild(document.createTextNode(nli.data.substr(start, end - start)));
+                        nli.data = nli.data.substr(0, start) + nli.data.substr(end);
+                        break
+                    }
+                    parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset)));
+                    nli.data = nli.data.substr(0, sel.anchorOffset);
+
+                } else if (nli.thisIsTheEndContainer === 'end') {
+                    nli.thisIsTheEndContainer = '';
+                    parent.appendChild(document.createTextNode(nli.data.substr(0, sel.focusOffset)));
+                    nli.data = nli.data.substr(sel.focusOffset, nli.data.length - sel.focusOffset);
+                    break;
+                } else {
+                    parent.appendChild(nli);
+                    i--;
+                    n--;
+                }
+            } else {
+                parent.appendChild(nli);
+                i--;
+                n--;
+            }
+        }
+        return parent;
+    }
+    function whereAmI() {
+        var start, sel, range, path = [];
+        sel = iframe.contentDocument.getSelection();
+        range = sel.getRangeAt(0);
+        start = range.startContainer;
+        do {
+            if (typeof start.tagName !== 'undefined') {
+                path.push(start.tagName)
+            }
+            start = start.parentNode;
+        } while (start.tagName !== 'BODY');
+        path.push('BODY');
+        uidiv.querySelector('.formatLine').innerHTML = path.reverse().join('>');
+    }
+    function isElement(tagName) {
+        var start, sel, range;
+        sel = iframe.contentDocument.getSelection();
+        if (sel.type !== 'Caret') {
+            return {'a': '', 'selType': sel.type};
+        }
+        range = sel.getRangeAt(0);
+        start = range.startContainer;
+        do {
+            if (typeof start.tagName !== 'undefined') {
+                if (tagName === start.tagName) {
+                    return {'a': start, 'selType': sel.type};
+                }
+            }
+            start = start.parentNode;
+        } while (start.tagName !== 'BODY');
+        return {'a': '', 'selType': sel.type};
+    }
     function insertNodeAtSelection(insertNode) {
 
-        var sel, range, startContainer, pos, textBefore, textAfter, storedSel,
-                afterNode, beforeNode, textNode, text, rangeNew;
-        sel = iframe.contentDocument.getSelection();
+        var sel, range, startContainer, pos, textBefore, textAfter,
+                afterNode, beforeNode, textNode, text;
 
+        sel = iframe.contentDocument.getSelection();
         sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
         sel.anchorNode.thisIsTheStartContainer = 'start';
         sel.focusNode.parentNode.thisIsTheEndNode = 'end';
@@ -333,6 +447,7 @@ function createEditor(config) {
             storedSelections = sel.getRangeAt(0);
             copyAllFormSelection(sel, insertNode);
         }
+
         if (startContainer.nodeType === 3) {
             textNode = startContainer;
             startContainer = textNode.parentNode;
@@ -458,123 +573,7 @@ function createEditor(config) {
             }
         }
     }
-    function whereAmI() {
-        var start, sel, range, path = [];
-        sel = iframe.contentDocument.getSelection();
-        range = sel.getRangeAt(0);
-        start = range.startContainer;
-        do {
-            if (typeof start.tagName !== 'undefined') {
-                path.push(start.tagName)
-            }
-            start = start.parentNode;
-        } while (start.tagName !== 'BODY');
-        path.push('BODY');
-        uidiv.querySelector('.formatLine').innerHTML = path.reverse().join('>');
-    }
-    function isElement(tagName) {
-        var start, sel, range;
-        sel = iframe.contentDocument.getSelection();
-        if (sel.type !== 'Caret') {
-            return {'a': '', 'selType': sel.type};
-        }
-        range = sel.getRangeAt(0);
-        start = range.startContainer;
-        do {
-            if (typeof start.tagName !== 'undefined') {
-                if (tagName === start.tagName) {
-                    return {'a': start, 'selType': sel.type};
-                }
-            }
-            start = start.parentNode;
-        } while (start.tagName !== 'BODY');
-        return {'a': '', 'selType': sel.type};
-    }
-    function copyAllFormSelection(sel, newNode) {
 
-        var nl = [];
-        nl = sel.anchorNode.parentNode.childNodes;
-        walkNodes(newNode, nl, sel);
-        return;
-    }
-
-    function walkNodes(parent, nodeList, selorg) {
-        var i, what, nli, n = nodeList.length, start, end, tmp, sel = {};
-
-
-        what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
-        if (what === 2) { // left  to right selection
-
-            selorg.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
-            selorg.anchorNode.thisIsTheStartContainer = '';
-            selorg.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
-            selorg.focusNode.thisIsTheEndContainer = '';
-
-            sel.anchorNode = selorg.focusNode;
-            sel.anchorOffset = selorg.focusOffset;
-            sel.focusNode = selorg.anchorNode;
-            sel.focusOffset = selorg.anchorOffset;
-
-            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
-            sel.anchorNode.thisIsTheStartContainer = 'start';
-            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
-            sel.focusNode.thisIsTheEndContainer = 'end';
-
-            nodeList = sel.anchorNode.parentNode.childNodes;
-
-        } else {
-            sel = selorg;
-        }
-        // find start conatiner
-        for (i = 0; i < n; i++) {
-            nli = nodeList[i];
-            if (nli.thisIsTheStartContainer === 'start') {
-                break;
-            }
-        }
-        // copy all from start conatiner to end
-        for (; i < n; i++) {
-            nli = nodeList[i];
-            if (nli.skipThisNode) {
-                continue;
-            }
-            if (nli.nodeType === 3) {
-                if (nli.thisIsTheStartContainer === 'start') {
-                    nli.thisIsTheStartContainer = '';
-                    if (nli.thisIsTheEndContainer === 'end') {
-                        nli.thisIsTheEndContainer = '';
-                        start = sel.anchorOffset;
-                        end = sel.focusOffset
-                        if (start > end) {
-                            tmp = start;
-                            start = end;
-                            end = tmp;
-                        }
-                        parent.appendChild(document.createTextNode(nli.data.substr(start, end - start)));
-                        nli.data = nli.data.substr(0, start) + nli.data.substr(end);
-                        break
-                    }
-                    parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset)));
-                    nli.data = nli.data.substr(0, sel.anchorOffset);
-
-                } else if (nli.thisIsTheEndContainer === 'end') {
-                    nli.thisIsTheEndContainer = '';
-                    parent.appendChild(document.createTextNode(nli.data.substr(0, sel.focusOffset)));
-                    nli.data = nli.data.substr(sel.focusOffset, nli.data.length - sel.focusOffset);
-                    break;
-                } else {
-                    parent.appendChild(nli);
-                    i--;
-                    n--;
-                }
-            } else {
-                parent.appendChild(nli);
-                i--;
-                n--;
-            }
-        }
-        return parent;
-    }
 
 
     self = {// reveal these functions to the outside
