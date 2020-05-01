@@ -44,7 +44,8 @@ Now grab a picture and drop it onto the word DROPZONE.
 
 ![dropzone](img/drop.JPG)
 
-This  will upload and display the picture immediatly.
+This  will upload and display the picture immediatly. The image  
+still works as a DROPEZONE
 
 ![droped](img/droped.JPG)
 
