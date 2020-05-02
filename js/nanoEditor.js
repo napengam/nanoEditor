@@ -30,6 +30,7 @@ function createEditor(config) {
 //
     d = new Date();
     t = d.getTime(); // used to make ids  somehow 'unique' 
+
     uidiv = document.createElement('DIV');
     configMenu = [
         {'label': 'saveselect', 'event': 'mouseover', 'action': saveSelection},
@@ -53,6 +54,7 @@ function createEditor(config) {
         {'label': 'Font', 'event': 'change', 'action': fontName},
         {'label': 'Image', 'event': 'click', 'action': insertImageDropZone},
         {'label': 'Link', 'event': 'click', 'action': enterEditLink},
+        {'label': 'Table', 'event': 'click', 'action': enterTable},
         {'label': 'saveLink', 'event': 'click', 'action': saveLink}
     ];
     document.body.appendChild(uidiv);
@@ -103,6 +105,7 @@ function createEditor(config) {
         "<input id=", t, "Color type='color' value='#000000' title='Foreground' style='width:2em;margin:0;padding:0;border:0;position:relative;top:3px'>",
         "<i class='fa fa-fw fa-square-full'></i>",
         "<button id=", t, "-undo ><i class='fa fa-fw fa-undo' title='undo'></i></button>",
+        "<button id=", t, "Table ><i class='fa fa-fw fa-table' title='Table'></i></button>",
         "<button id=", t, "Image ><i class='fa fa-fw fa-image' title='Picture'></i></button>",
         "<button id=", t, "Link ><i class='fa fa-fw fa-link' title='Link'></i></button>",
         "<i class='fa fa-fw fa-square-full'></i>",
@@ -131,6 +134,36 @@ function createEditor(config) {
     uidiv.onclick = stopBubble; // keep all (click-)events inside the editor 
     uidiv.onfocus = stopBubble;
     uidiv.onmouseover = stopBubble;
+    uidiv.onmouseup = stopBubble;
+    uidiv.keyup = stopBubble;
+
+    function makeStyle() {
+        var styleElem = iframe.contentDocument.createElement('STYLE');
+        styleElem.innerHTML = [
+            "table,  th, td{border-collapse:collapse;  border: 1px solid silver;}",
+            "th, td{min-width:2em}"
+        ].join('');
+        iframe.contentDocument.getElementsByTagName('head')[0].appendChild(styleElem);
+        return styleElem;
+    }
+
+    function makeTableContextMenu() {
+        var div = document.createElement('DIV');
+        div.id = t + 'ctm';
+        div.innerHTML = '<ul><li>Insert Row</li></ul>';
+        div.style.display = 'none';
+        iframe.contentDocument.body.appendChild(div);
+    }
+
+    function enterTable() {
+        var t;
+        t = document.createElement('TABLE');
+        t.innerHTML = [
+            '<tr><th>head cell</th><th>head cell</th><th>head cell</th><tr>',
+            '<tr><td>111</td><td>222</td><td>33</td><tr>'
+        ].join('');
+        insertNodeAtSelection(t);
+    }
 
     function enterEditLink() {
         var at = {}, el = uidiv.querySelector('#enterLink'), sel;
@@ -144,7 +177,6 @@ function createEditor(config) {
         if (at.a) {
             el.firstChild.value = at.a.href;
             currentLink = at.a;
-
         } else if (at.selType === 'None') {
             return;
         }
@@ -280,7 +312,11 @@ function createEditor(config) {
                 uploadFiles(node, '', '');
             });
         }
-        docx.body.onmouseup = whereAmI;
+//docx.body.onkeyup = whereAmI;
+        docx.body.onmouseup = watchEvent;
+        docx.body.onkeyup = watchEvent;
+        makeStyle();
+        makeTableContextMenu();
     }
     function attacheEditor() {
 
@@ -314,39 +350,33 @@ function createEditor(config) {
     }
     function walkNodes(parent, nodeList, selorg) {
         var i, what, nli, n = nodeList.length, start, end, tmp, sel = {};
-
-
         what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
-        if (what === 2) { // left  to right selection
+        if (what === Node.DOCUMENT_POSITION_PRECEDING) { // left  to right selection
 
             selorg.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
             selorg.anchorNode.thisIsTheStartContainer = '';
             selorg.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
             selorg.focusNode.thisIsTheEndContainer = '';
-
             sel.anchorNode = selorg.focusNode;
             sel.anchorOffset = selorg.focusOffset;
             sel.focusNode = selorg.anchorNode;
             sel.focusOffset = selorg.anchorOffset;
-
             sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
             sel.anchorNode.thisIsTheStartContainer = 'start';
             sel.focusNode.parentNode.thisIsTheEndNode = 'end';
             sel.focusNode.thisIsTheEndContainer = 'end';
-
             nodeList = sel.anchorNode.parentNode.childNodes;
-
         } else {
             sel = selorg;
         }
-        // find start conatiner
+// find start conatiner
         for (i = 0; i < n; i++) {
             nli = nodeList[i];
             if (nli.thisIsTheStartContainer === 'start') {
                 break;
             }
         }
-        // copy all from start conatiner to end
+// copy all from start conatiner to end
         for (; i < n; i++) {
             nli = nodeList[i];
             if (nli.skipThisNode) {
@@ -370,7 +400,6 @@ function createEditor(config) {
                     }
                     parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset)));
                     nli.data = nli.data.substr(0, sel.anchorOffset);
-
                 } else if (nli.thisIsTheEndContainer === 'end') {
                     nli.thisIsTheEndContainer = '';
                     parent.appendChild(document.createTextNode(nli.data.substr(0, sel.focusOffset)));
@@ -399,7 +428,7 @@ function createEditor(config) {
                 path.push(start.tagName);
             }
             start = start.parentNode;
-        } while (start.tagName !== 'BODY');
+        } while (start !== null && start.tagName !== 'BODY');
         path.push('BODY');
         uidiv.querySelector('.formatLine').innerHTML = path.reverse().join('>');
     }
@@ -418,26 +447,21 @@ function createEditor(config) {
                 }
             }
             start = start.parentNode;
-        } while (start.tagName !== 'BODY');
+        } while (start !== null && start.tagName !== 'BODY');
         return {'a': '', 'selType': sel.type};
     }
     function insertNodeAtSelection(insertNode) {
 
         var sel, range, startContainer, pos, textBefore, textAfter,
                 afterNode, beforeNode, textNode, text;
-
         sel = iframe.contentDocument.getSelection();
         sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
         sel.anchorNode.thisIsTheStartContainer = 'start';
         sel.focusNode.parentNode.thisIsTheEndNode = 'end';
         sel.focusNode.thisIsTheEndContainer = 'end';
-
-
         range = sel.getRangeAt(0);
         startContainer = range.startContainer;
         pos = range.startOffset;
-
-
         if (insertNode.tagName === 'A') {
             if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
                 return;
@@ -453,22 +477,149 @@ function createEditor(config) {
             text = textNode.nodeValue;
             textBefore = text.substr(0, pos);
             textAfter = text.substr(pos);
-
             beforeNode = document.createTextNode(textBefore);
             afterNode = document.createTextNode(textAfter);
-
             startContainer.insertBefore(afterNode, textNode);
             startContainer.insertBefore(insertNode, afterNode);
             startContainer.insertBefore(beforeNode, insertNode);
-
             startContainer.removeChild(textNode);
         } else {
             afterNode = startContainer.childNodes[pos];
             startContainer.appendChild(insertNode);
-
         }
 
         return insertNode;
+    }
+    function watchEvent(e) {
+        var pos = {}, sel, cell, ri, ci, cii, cc, i, row;
+        if (e) {
+            pos = isElement('TABLE');
+            if (pos.a) {
+                pos.a.oncontextmenu = contextMenu;
+            }
+            if (!e.altKey) {
+                if (e.type === 'mouseup' || e.type === 'keyup') {
+                    whereAmI();
+                    return;
+                }
+            } else {
+                sel = iframe.contentDocument.getSelection();
+
+                if (sel.type !== 'Caret' || sel.type === 'None') {
+                    return;
+                }
+                if (e.key === 'ArrowUp') {
+                    pos = isElement('TABLE');
+                    if (pos.a) {
+                        cell = findElementAtSelection('TD');
+                        if (cell === null) {
+                            return;
+                        }
+                        ci = cell.cellIndex;
+                        ri = cell.parentNode.rowIndex;
+                        cc = cell.parentNode.cells.length;
+                        row = pos.a.insertRow(ri);
+                        for (i = 0; i < cc; i++) {
+                            row.insertCell(0);
+                        }
+                        return;
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    pos = isElement('TABLE');
+                    if (pos.a) {
+                        cell = findElementAtSelection('TD');
+                        if (cell === null) {
+                            return;
+                        }
+                        ci = cell.cellIndex;
+                        ri = cell.parentNode.rowIndex;
+                        pos.a.deleteRow(ri);
+                        return;
+                    }
+                } else if (e.key === 'ArrowRight') {
+                    pos = isElement('TABLE');
+                    if (pos.a) {
+                        cell = findElementAtSelection('TD');
+                        if (cell === null || cell.colSpan > 1) {
+                            return;
+                        }
+                        ci = cell.cellIndex;
+                        ri = cell.parentNode.rowIndex;
+                        for (i = ri; i >= 0; i--) {
+                            cii = findCi(ci, pos.a.rows[i].cells);
+                            if (pos.a.rows[i].cells[cii].colSpan === 1) {
+                                pos.a.rows[i].insertCell(cii);
+                            } else {
+                                pos.a.rows[i].cells[cii].colSpan++;
+                            }
+                        }
+                        for (i = ri + 1; i < pos.a.rows.length; i++) {
+                            if (pos.a.rows[i].cells[ci].colSpan === 1) {
+                                pos.a.rows[i].insertCell(ci);
+                            } else {
+                                pos.a.rows[i].cells[ci].colSpan++;
+                            }
+                        }
+                        return;
+                    }
+                } else if (e.key === 'ArrowLeft') {
+                    pos = isElement('TABLE');
+                    if (pos.a) {
+                        cell = findElementAtSelection('TD');
+                        if (cell === null || cell.colSpan > 1) {
+                            return;
+                        }
+                        ci = cell.cellIndex;
+                        ri = cell.parentNode.rowIndex;
+                        for (i = ri; i >= 0; i--) {
+                            cii = findCi(ci, pos.a.rows[i].cells);
+                            if (pos.a.rows[i].cells[cii].colSpan === 1) {
+                                pos.a.rows[i].deleteCell(cii);
+                            } else {
+                                pos.a.rows[i].cells[cii].colSpan--;
+                            }
+                        }
+                        for (i = ri + 1; i < pos.a.rows.length; i++) {
+                            if (pos.a.rows[i].cells[ci].colSpan === 1) {
+                                pos.a.rows[i].deleteCell(ci);
+                            } else {
+                                pos.a.rows[i].cells[ci].colSpan--;
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    function contextMenu() {
+        var div;
+        stopBubble();
+        div = iframe.contentDocument.getElementById(t + 'ctm');
+        div.style.display = '';
+        div.style.position = 'absolute';
+        div.style.top = '0px';
+        div.style.left = '0px';
+    }
+    function findCi(ci, cells) {
+        var prev = 0, i, n;
+        n = cells.length;
+        for (i = 0; i < n; i++) {
+            if (prev + cells[i].colSpan - 1 >= ci) {
+                return i;
+            }
+            prev += cells[i].colSpan;
+        }
+
+    }
+    function findElementAtSelection(elem) {
+        var node, sel;
+        sel = iframe.contentDocument.getSelection();
+        node = sel.anchorNode;
+        while (node !== null && node.tagName !== elem) {
+            node = node.parentNode;
+        }
+        return node;
     }
     function uploadFiles(dropZoneId, formId, dialogs) {
         'use strict';
