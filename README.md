@@ -1,9 +1,8 @@
 # nanoEditor
 JavaScript to create a  small editor
 
-It is not a full blown rich text editor with table support, syntax highlighting and what not. If you need 
-such a beast have a look at other available editors.
-
+It is not a full blown rich text editor with sofisticated table support, syntax highlighting and what not.  
+If you need such a beast have a look at other available editors.
 
 ![menue](img/edit.JPG)
 

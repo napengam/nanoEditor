@@ -11,7 +11,7 @@
 function createEditor(config) {
     'use strict';
     var
-            docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML,
+            docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML, context_timeout,
             configMenu = [], innerHTML, storedSelections, currentLink = '',
             saveCallback, closeCallback, theForm;
     //*
@@ -115,7 +115,7 @@ function createEditor(config) {
         "<input type=text placeholder='enter URL' size=80 maxlegth=265>",
         "<button id=", t, "saveLink ><i class='fa fa-fw fa-save' title='save Link'></i></button>",
         "</td></tr>",
-        "<tr><td><iframe style='resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
+        "<tr><td><iframe style='min-height:800px;resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
         "<tr><td style='border-top:1px solid black' class='formatLine'>where am I ?</td></tr>",
         "</table>"
     ].join('');
@@ -146,21 +146,19 @@ function createEditor(config) {
         iframe.contentDocument.getElementsByTagName('head')[0].appendChild(styleElem);
         return styleElem;
     }
-
-    function makeTableContextMenu() {
-        var div = document.createElement('DIV');
-        div.id = t + 'ctm';
-        div.innerHTML = '<ul><li>Insert Row</li></ul>';
-        div.style.display = 'none';
-        iframe.contentDocument.body.appendChild(div);
+    function makeScript() {
+        var elem = iframe.contentDocument.createElement('SCRIPT');
+        elem.src = "https://use.fontawesome.com/ed46cb3bd2.js";
+        iframe.contentDocument.getElementsByTagName('head')[0].appendChild(elem);
+        return elem;
     }
 
     function enterTable() {
         var t;
         t = document.createElement('TABLE');
         t.innerHTML = [
-            '<tr><th>head cell</th><th>head cell</th><th>head cell</th><tr>',
-            '<tr><td>111</td><td>222</td><td>33</td><tr>'
+            '<tr><th>head cell</th><th>head cell</th><th>head cell</th></tr>',
+            '<tr><td>111</td><td>222</td><td>33</td></tr>'
         ].join('');
         insertNodeAtSelection(t);
     }
@@ -312,10 +310,11 @@ function createEditor(config) {
                 uploadFiles(node, '', '');
             });
         }
-//docx.body.onkeyup = whereAmI;
+
         docx.body.onmouseup = watchEvent;
         docx.body.onkeyup = watchEvent;
         makeStyle();
+        makeScript();
         makeTableContextMenu();
     }
     function attacheEditor() {
@@ -369,14 +368,14 @@ function createEditor(config) {
         } else {
             sel = selorg;
         }
-// find start conatiner
+        // find start conatiner
         for (i = 0; i < n; i++) {
             nli = nodeList[i];
             if (nli.thisIsTheStartContainer === 'start') {
                 break;
             }
         }
-// copy all from start conatiner to end
+        // copy all from start conatiner to end
         for (; i < n; i++) {
             nli = nodeList[i];
             if (nli.skipThisNode) {
@@ -463,6 +462,9 @@ function createEditor(config) {
         startContainer = range.startContainer;
         pos = range.startOffset;
         if (insertNode.tagName === 'A') {
+            if (range.collapsed) {
+                return;
+            }
             if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
                 return;
             }
@@ -491,116 +493,167 @@ function createEditor(config) {
         return insertNode;
     }
     function watchEvent(e) {
-        var pos = {}, sel, cell, ri, ci, cii, cc, i, row;
+        var pos = {};
         if (e) {
             pos = isElement('TABLE');
             if (pos.a) {
-                pos.a.oncontextmenu = contextMenu;
+                pos.a.oncontextmenu = function (e) {
+                    contextMenu(e);
+                    return false;
+                };
             }
             if (!e.altKey) {
                 if (e.type === 'mouseup' || e.type === 'keyup') {
                     whereAmI();
                     return;
                 }
-            } else {
-                sel = iframe.contentDocument.getSelection();
-
-                if (sel.type !== 'Caret' || sel.type === 'None') {
-                    return;
-                }
-                if (e.key === 'ArrowUp') {
-                    pos = isElement('TABLE');
-                    if (pos.a) {
-                        cell = findElementAtSelection('TD');
-                        if (cell === null) {
-                            return;
-                        }
-                        ci = cell.cellIndex;
-                        ri = cell.parentNode.rowIndex;
-                        cc = cell.parentNode.cells.length;
-                        row = pos.a.insertRow(ri);
-                        for (i = 0; i < cc; i++) {
-                            row.insertCell(0);
-                        }
-                        return;
-                    }
-                } else if (e.key === 'ArrowDown') {
-                    pos = isElement('TABLE');
-                    if (pos.a) {
-                        cell = findElementAtSelection('TD');
-                        if (cell === null) {
-                            return;
-                        }
-                        ci = cell.cellIndex;
-                        ri = cell.parentNode.rowIndex;
-                        pos.a.deleteRow(ri);
-                        return;
-                    }
-                } else if (e.key === 'ArrowRight') {
-                    pos = isElement('TABLE');
-                    if (pos.a) {
-                        cell = findElementAtSelection('TD');
-                        if (cell === null || cell.colSpan > 1) {
-                            return;
-                        }
-                        ci = cell.cellIndex;
-                        ri = cell.parentNode.rowIndex;
-                        for (i = ri; i >= 0; i--) {
-                            cii = findCi(ci, pos.a.rows[i].cells);
-                            if (pos.a.rows[i].cells[cii].colSpan === 1) {
-                                pos.a.rows[i].insertCell(cii);
-                            } else {
-                                pos.a.rows[i].cells[cii].colSpan++;
-                            }
-                        }
-                        for (i = ri + 1; i < pos.a.rows.length; i++) {
-                            if (pos.a.rows[i].cells[ci].colSpan === 1) {
-                                pos.a.rows[i].insertCell(ci);
-                            } else {
-                                pos.a.rows[i].cells[ci].colSpan++;
-                            }
-                        }
-                        return;
-                    }
-                } else if (e.key === 'ArrowLeft') {
-                    pos = isElement('TABLE');
-                    if (pos.a) {
-                        cell = findElementAtSelection('TD');
-                        if (cell === null || cell.colSpan > 1) {
-                            return;
-                        }
-                        ci = cell.cellIndex;
-                        ri = cell.parentNode.rowIndex;
-                        for (i = ri; i >= 0; i--) {
-                            cii = findCi(ci, pos.a.rows[i].cells);
-                            if (pos.a.rows[i].cells[cii].colSpan === 1) {
-                                pos.a.rows[i].deleteCell(cii);
-                            } else {
-                                pos.a.rows[i].cells[cii].colSpan--;
-                            }
-                        }
-                        for (i = ri + 1; i < pos.a.rows.length; i++) {
-                            if (pos.a.rows[i].cells[ci].colSpan === 1) {
-                                pos.a.rows[i].deleteCell(ci);
-                            } else {
-                                pos.a.rows[i].cells[ci].colSpan--;
-                            }
-                        }
-                        return;
-                    }
-                }
             }
         }
     }
-    function contextMenu() {
-        var div;
+    function makeTableContextMenu() {
+        var div = document.createElement('DIV');
+        div.id = t + 'ctm';
+        div.innerHTML = [
+            '<span id="irow"><i class="fa fa-w fa-arrow-left"> </i> Insert Row</span><br>',
+            '<span id="drow"><i style="color:red" class="fa fa-w fa-trash"> </i> Delete row </span><br>',
+            '<hr>',
+            '<span id="icol"><i class="fa fa-w fa-arrow-left"> </i> Insert Column</span><br>',
+            '<span id="dcol"><i style="color:red" class="fa fa-w fa-trash"> </i> Delete column</span>'
+        ].join('');
+
+        div.style.display = 'none';
+        div.style.backgroundColor = '#eaeaea';
+        iframe.contentDocument.body.appendChild(div);
+    }
+    function contextMenu(e) {
+        var div, left, top, obj;
         stopBubble();
         div = iframe.contentDocument.getElementById(t + 'ctm');
         div.style.display = '';
         div.style.position = 'absolute';
         div.style.top = '0px';
         div.style.left = '0px';
+
+        //*********************
+        //position context menu
+        //********************/
+        left = e.clientX;
+        top = e.clientY;
+        left = left + document.documentElement.scrollLeft;
+        top = top + document.documentElement.scrollTop;
+
+        ///******************
+        // * render to get geometrie
+        //******************/
+        div.style.display = 'inline-block';
+        div.style.position = 'absolute';
+        div.style.left = left - 5 + 'px';
+        div.style.top = top - 5 + 'px';
+        div.style.padding = '10px';
+
+        div.onmouseout = function () {
+            context_timeout = setTimeout("document.getElementById('" + t + "nanoContent').contentDocument.getElementById('" + t + "ctm').style.display='none';", 200);
+        };
+        div.onmouseover = function () {
+            clearTimeout(context_timeout);
+        };
+        div.focus();
+
+        obj = div.querySelector('#irow');
+        obj.onclick = insertRow.bind(e.srcElement);
+        obj = div.querySelector('#drow');
+        obj.onclick = deleteRow.bind(e.srcElement);
+        obj = div.querySelector('#icol');
+        obj.onclick = insertCols.bind(e.srcElement);
+        obj = div.querySelector('#dcol');
+        obj.onclick = deleteCols.bind(e.srcElement);
+
     }
+    function closeContextMenu() {
+        clearTimeout(context_timeout);
+        iframe.contentDocument.getElementById(t + 'ctm').style.display = 'none';
+    }
+    function insertRow() {
+        var i, cell, ci, ri, cc, row;
+        cell = this;
+        if (cell === null) {
+            return;
+        }
+        ci = cell.cellIndex;
+        ri = cell.parentNode.rowIndex;
+        cc = cell.parentNode.cells.length;
+        row = cell.parentNode.parentNode.insertRow(ri);
+        for (i = 0; i < cc; i++) {
+            row.insertCell(0);
+        }
+        closeContextMenu();
+        return;
+
+    }
+    function deleteRow() {
+        var cell, ci, ri, cc, row;
+        cell = this;
+        if (cell === null) {
+            return;
+        }
+        console.log(cell);
+        console.log(cell.parentNode);
+        console.log(cell.parentNode.parentNode);
+        ci = cell.cellIndex;
+        ri = cell.parentNode.rowIndex;
+        cc = cell.parentNode.cells.length;
+        row = cell.parentNode.parentNode.deleteRow(ri);
+        closeContextMenu();
+        return;
+    }
+
+    function insertCols() {
+        var cell = this, ci, ri, i, cii, tbody;
+        ci = cell.cellIndex;
+        ri = cell.parentNode.rowIndex;
+        tbody = cell.parentNode.parentNode;
+        for (i = ri; i >= 0; i--) {
+            cii = findCi(ci, tbody.rows[i].cells);
+            if (tbody.rows[i].cells[cii].colSpan === 1) {
+                tbody.rows[i].insertCell(cii);
+            } else {
+                tbody.rows[i].cells[cii].colSpan++;
+            }
+        }
+        for (i = ri + 1; i < tbody.rows.length; i++) {
+            if (tbody.rows[i].cells[ci].colSpan === 1) {
+                tbody.rows[i].insertCell(ci);
+            } else {
+                tbody.rows[i].cells[ci].colSpan++;
+            }
+        }
+        closeContextMenu();
+        return;
+    }
+    function deleteCols() {
+        var cell = this, i, ci, ri, cii, tbody;
+        ci = cell.cellIndex;
+        ri = cell.parentNode.rowIndex;
+        tbody = cell.parentNode.parentNode;
+        for (i = ri; i >= 0; i--) {
+            cii = findCi(ci, tbody.rows[i].cells);
+            if (tbody.rows[i].cells[cii].colSpan === 1) {
+                tbody.rows[i].deleteCell(cii);
+            } else {
+                tbody.rows[i].cells[cii].colSpan--;
+            }
+        }
+        for (i = ri + 1; i < tbody.rows.length; i++) {
+            if (tbody.rows[i].cells[ci].colSpan === 1) {
+                tbody.rows[i].deleteCell(ci);
+            } else {
+                tbody.rows[i].cells[ci].colSpan--;
+            }
+        }
+        closeContextMenu();
+        return;
+    }
+
     function findCi(ci, cells) {
         var prev = 0, i, n;
         n = cells.length;
