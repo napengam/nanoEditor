@@ -11,7 +11,7 @@
 function createEditor(config) {
     'use strict';
     var
-            docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML, context_timeout,
+            defaultOptions, docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML, context_timeout,
             configMenu = [], innerHTML, storedSelections, currentLink = '',
             saveCallback, closeCallback, theForm;
     //*
@@ -21,9 +21,14 @@ function createEditor(config) {
     if (uidiv) {
         return uidiv.aaaself;
     }
-    cfg = {'imageUploadPath': ''};
+    defaultOptions = {
+        'imageUploadPath': '',
+        'imageUploadScript': '../php/upload_save_2.php',
+        'saveAndExit': true
+    };
+    cfg = defaultOptions;
     if (typeof config !== 'undefined' && typeof config === 'object') {
-        cfg = Object.assign({'imageUploadPath': '', 'askOnExit': true}, config);
+        cfg = Object.assign(defaultOptions, config);
     }
 //*
 //* create
@@ -141,7 +146,9 @@ function createEditor(config) {
         var styleElem = iframe.contentDocument.createElement('STYLE');
         styleElem.innerHTML = [
             "table,  th, td{border-collapse:collapse;  border: 1px solid silver;}",
-            "th, td{min-width:2em}"
+            "th, td{min-width:2em}",
+            ".contextctmC {}",
+            ".contextctmC > span:hover{cursor:default}"
         ].join('');
         iframe.contentDocument.getElementsByTagName('head')[0].appendChild(styleElem);
         return styleElem;
@@ -164,7 +171,13 @@ function createEditor(config) {
     }
 
     function enterEditLink() {
-        var at = {}, el = uidiv.querySelector('#enterLink'), sel;
+        var at = {}, el = uidiv.querySelector('#enterLink'), sel, range;
+        sel = iframe.contentDocument.getSelection();
+        range = sel.getRangeAt(0);
+        if (range.collapsed) {
+            el.style.visibility = 'hidden';
+            return;
+        }
         if (el.style.visibility === 'visible') {
             el.style.visibility = 'hidden';
             currentLink = '';
@@ -514,15 +527,17 @@ function createEditor(config) {
         var div = document.createElement('DIV');
         div.id = t + 'ctm';
         div.innerHTML = [
-            '<span id="irow"><i class="fa fa-w fa-arrow-left"> </i> Insert Row</span><br>',
-            '<span id="drow"><i style="color:red" class="fa fa-w fa-trash"> </i> Delete row </span><br>',
+            '<span id="irow"><i class="fa fa-xs fa-arrow-left"> </i> Insert Row</span><br>',
+            '<span id="drow"><i style="color:red" class="fa  fa-trash"> </i> Delete row </span><br>',
             '<hr>',
-            '<span id="icol"><i class="fa fa-w fa-arrow-left"> </i> Insert Column</span><br>',
-            '<span id="dcol"><i style="color:red" class="fa fa-w fa-trash"> </i> Delete column</span>'
+            '<span id="icol"><i class="fa fa-columns"> </i> Insert Column</span><br>',
+            '<span id="dcol"><i style="color:red" class="fa f fa-trash"> </i> Delete column</span>'
         ].join('');
 
         div.style.display = 'none';
         div.style.backgroundColor = '#eaeaea';
+        div.style.fontSize = '0.8em';
+        div.className = "contextctmC";
         iframe.contentDocument.body.appendChild(div);
     }
     function contextMenu(e) {
@@ -699,7 +714,7 @@ function createEditor(config) {
         //
         if (!theForm) {
             div = document.createElement('DIV');
-            div.innerHTML = ["<form name='upload' enctype='multipart/form-data' action='../php/upload_save_2.php' method='POST'>",
+            div.innerHTML = ["<form name='upload' enctype='multipart/form-data' action='", cfg.imageUploadScript, "' method='POST'>",
                 "<input type='hidden' name='MAX_FILE_SIZE' value='123456789'>",
                 "<input type='hidden' name='path' value='", cfg.imageUploadPath, "'>",
                 "<input name='uploadedfile' type='file'>",
