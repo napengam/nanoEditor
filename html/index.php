@@ -22,7 +22,7 @@
     <body>
 
         <div id="divdiv" class='editMe' style="display:inline-block">
-
+           
             <h1>double click here to start the editor</h1>
 
             <H2> Image upload is not <i>configured</i> in this demo </h2> 
