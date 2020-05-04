@@ -197,7 +197,7 @@ function createEditor(config) {
         if (cfg.imageUploadPath) {
             dz = docx.querySelectorAll('.dropZone');
             dz.forEach((node) => {
-                uploadFiles(node, '', '');
+                uploadFiles(node);
             });
         }
 
@@ -324,7 +324,7 @@ function createEditor(config) {
         insertNodeAtSelection(node);
         dz = iframe.contentDocument.querySelectorAll('.dropZone');
         dz.forEach((node) => {
-            uploadFiles(node, '', '');
+            uploadFiles(node);
         });
     }
 
@@ -745,16 +745,14 @@ function createEditor(config) {
 
     }
 
-    function uploadFiles(dropZoneId, formId, dialogs) {
+    function uploadFiles(dropZoneId) {
         'use strict';
         var
                 request = new XMLHttpRequest(),
-                dropZone, div,
-                uploadedFiles;
+                dropZone, div;
         // 
         //    add drop handlers
         //
-        theForm = document.getElementById(formId);
         if (typeof dropZoneId === 'string') {
             dropZone = document.getElementById(dropZoneId);
         } else {
@@ -765,15 +763,16 @@ function createEditor(config) {
         dropZone.ondragover = function (event) {
             event.preventDefault();
         };
-        //*
-        //* find file type element
-        //
-        if (!theForm) {
+
+        if (!theForm) { // GLOBAL
+            //*
+            //* Create  form to  upload files once 
+            //
             div = document.createElement('DIV');
             div.innerHTML = ["<form name='upload' enctype='multipart/form-data' action='", cfg.imageUploadScript, "' method='POST'>",
                 "<input type='hidden' name='MAX_FILE_SIZE' value='123456789'>",
                 "<input type='hidden' name='path' value='", cfg.imageUploadPath, "'>",
-                "<input name='uploadedfile' type='file'>",
+                "<input name='uploadedFile' type='file'>", //<== here we place the droped file 
                 "<input name='submit' value='Speichern'>",
                 "</form>"].join('');
             document.body.appendChild(div);
@@ -781,13 +780,6 @@ function createEditor(config) {
             theForm.style.display = 'none';
         }
 
-        [].some.call(theForm.elements, function (elem) {
-            if (elem.type === 'file') {
-                uploadedFiles = elem.name;
-                return true;
-            }
-            return false;
-        });
         function dropHandler(ev) {
             var file, formData, allow;
             // Prevent default behavior (Prevent file from being opened)
@@ -800,7 +792,7 @@ function createEditor(config) {
                     if (item.kind === 'file' && item.type.split('/')[0] === 'image') {
                         file = item.getAsFile();
                         formData = new FormData(theForm);
-                        formData.append(uploadedFiles, file, file.name);
+                        formData.append('uploadedFile', file, file.name);
                         allow = true;
                         return true;
                     }
@@ -820,24 +812,16 @@ function createEditor(config) {
             if (this.readyState !== 4 || this.status !== 200) {
                 if (this.readyState === 4) {
                 }
-                if (dialogs) {
-                    dialogs.infoDialog('Uploaded; Status: ' + this.readyState + '/' + this.status, [{label: 'ok', action: {}}]);
-                }
                 return;
             }
             try {
                 js = JSON.parse(this.responseText);
-                if (dialogs) {
-                    dialogs.infoDialog(js.result, [{label: 'ok', action: {}}]);
-                }
                 thisDropZone.innerHTML = "<img style='width:" + js.width + "px;height:" + js.height + "px' src='" + js.result + "'>";
             } catch (e) {
                 return;
             }
         }
     }
-
-
 
     self = {// reveal these functions to the outside
         closeEditor: closeEditor,
