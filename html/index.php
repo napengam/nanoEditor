@@ -15,7 +15,7 @@
                     obj.ondblclick = nanoEdit.attacheEditor;
                 });
             }
-
+ 
             window.addEventListener('load', initEditDemo, false);
         </script>
     </head>
