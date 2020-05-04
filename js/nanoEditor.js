@@ -291,7 +291,7 @@ function createEditor(config) {
     }
 
     function insertImageDropZone() {
-        var sel;
+        var sel, dz, node;
 
         if (cfg.imageUploadPath === '') {
             return;
@@ -300,7 +300,7 @@ function createEditor(config) {
         if (sel.type === 'None') {
             return;
         }
-        var dz, node = document.createElement('span');
+        node = document.createElement('span');
         node.innerHTML = "&nbsp;<i title='Drop picture here'>DROPZONE</i>&nbsp;";
         node.className = 'dropZone';
         insertNodeAtSelection(node);
@@ -385,7 +385,58 @@ function createEditor(config) {
             closeCallback = '';
         }
     }
+    function insertNodeAtSelection(insertNode) {
 
+        var sel, stop = false, range, startContainer, pos, textBefore, textAfter,
+                afterNode, beforeNode, textNode, text;
+        sel = iframe.contentDocument.getSelection();
+        if (sel.anchorNode === null) {
+            restoreSelection();
+            sel = iframe.contentDocument.getSelection();
+        }
+        range = sel.getRangeAt(0);
+        startContainer = range.startContainer;
+        pos = range.startOffset;
+        if (insertNode.tagName === 'A') {
+            if (range.collapsed) {
+                return;
+            }
+            //tag anchor and focus node
+            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
+            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
+            if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
+                stop = true; // selection spans multiple nodes/ siblings
+            }
+            // untag
+            sel.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
+            sel.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
+            if (stop) {
+                return;
+            }
+            insertNode.skipThisNode = true;
+            storedSelections = sel.getRangeAt(0);
+            copyAllFormSelection(sel, insertNode);
+        }
+
+        if (startContainer.nodeType === 3) {
+            textNode = startContainer;
+            startContainer = textNode.parentNode;
+            text = startContainer.nodeValue;
+            textBefore = text.substr(0, pos);
+            textAfter = text.substr(pos);
+            beforeNode = document.createTextNode(textBefore);
+            afterNode = document.createTextNode(textAfter);
+            startContainer.insertBefore(afterNode, textNode);
+            startContainer.insertBefore(insertNode, afterNode);
+            startContainer.insertBefore(beforeNode, insertNode);
+            startContainer.removeChild(textNode);
+        } else {
+            afterNode = startContainer.childNodes[pos];
+            startContainer.insertBefore(insertNode, afterNode);
+        }
+
+        return insertNode;
+    }
     function copyAllFormSelection(sel, newNode) {
         var nl = [];
         nl = sel.anchorNode.parentNode.childNodes;
@@ -397,8 +448,7 @@ function createEditor(config) {
 
         what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
 
-        if (what === Node.DOCUMENT_POSITION_PRECEDING) { //right  toleft selectio
-
+        if (what === Node.DOCUMENT_POSITION_PRECEDING) { //right  to left selection
             // swap
             sel.anchorNode = selorg.focusNode;
             sel.anchorOffset = selorg.focusOffset;
@@ -425,6 +475,7 @@ function createEditor(config) {
         for (; i < n; i++) {
             nli = nodeList[i];
             if (nli.skipThisNode) {
+                nli.removeAttribute === 'function' ? nli.removeAttribute('skipThisNode') : nli.skipThisNode = false;
                 continue;
             }
             if (nli.nodeType === 3) {
@@ -495,58 +546,7 @@ function createEditor(config) {
         } while (start !== null && start.tagName !== 'BODY');
         return {'elem': '', 'selType': sel.type};
     }
-    function insertNodeAtSelection(insertNode) {
 
-        var sel, stop = false, range, startContainer, pos, textBefore, textAfter,
-                afterNode, beforeNode, textNode, text;
-        sel = iframe.contentDocument.getSelection();
-        if (sel.anchorNode === null) {
-            restoreSelection();
-            sel = iframe.contentDocument.getSelection();
-        }
-        range = sel.getRangeAt(0);
-        startContainer = range.startContainer;
-        pos = range.startOffset;
-        if (insertNode.tagName === 'A') {
-            if (range.collapsed) {
-                return;
-            }
-            //tag anchor and focus node
-            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
-            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
-            if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
-                stop = true; // selection spans multiple nodes/ siblings
-            }
-            // untag
-            sel.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
-            sel.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
-            if (stop) {
-                return;
-            }
-            insertNode.skipThisNode = true;
-            storedSelections = sel.getRangeAt(0);
-            copyAllFormSelection(sel, insertNode);
-        }
-
-        if (startContainer.nodeType === 3) {
-            textNode = startContainer;
-            startContainer = textNode.parentNode;
-            text = textNode.nodeValue;
-            textBefore = text.substr(0, pos);
-            textAfter = text.substr(pos);
-            beforeNode = document.createTextNode(textBefore);
-            afterNode = document.createTextNode(textAfter);
-            startContainer.insertBefore(afterNode, textNode);
-            startContainer.insertBefore(insertNode, afterNode);
-            startContainer.insertBefore(beforeNode, insertNode);
-            startContainer.removeChild(textNode);
-        } else {
-            afterNode = startContainer.childNodes[pos];
-            startContainer.insertBefore(insertNode, afterNode);
-        }
-
-        return insertNode;
-    }
     function watchEvent(e) {
         var pos = {};
         if (e) {
