@@ -10,7 +10,7 @@
 
             function initEditDemo() {
                 var objects, nanoEdit = createEditor({'imageUploadPath': ''});
-                objects = document.body.querySelectorAll('.editMe');
+                objects = document.body.querySelectorAll('.editMe'); 
                 [].forEach.call(objects, function (obj) {
                     obj.ondblclick = nanoEdit.attacheEditor;
                 });
