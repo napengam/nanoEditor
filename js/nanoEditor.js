@@ -12,7 +12,7 @@ function createEditor(config) {
     'use strict';
     var // GLOBALS within this module
 
-            defaultOptions, docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML, context_timeout,
+            noaction = false, defaultOptions, docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML, context_timeout,
             configMenu = [], innerHTML, storedSelections, currentLink = '',
             saveCallback, closeCallback, theForm;
     //*
@@ -141,7 +141,13 @@ function createEditor(config) {
         docx.close();
         docx.body.contentEditable = true;
         uidiv.style.display = 'none';
-        uidiv.onclick = stopBubble; // keep all (click-)events inside the editor 
+
+        //********************************************
+        //  keep all these events inside Editor
+        //*******************************************
+
+        uidiv.onclick = stopBubble;
+        uidiv.ondblclick = stopBubble;
         uidiv.onfocus = stopBubble;
         uidiv.onmouseover = stopBubble;
         uidiv.onmouseup = stopBubble;
@@ -171,7 +177,8 @@ function createEditor(config) {
         t = document.createElement('TABLE');
         t.innerHTML = [
             '<tr><th>head cell</th><th>head cell</th><th>head cell</th></tr>',
-            '<tr><td>111</td><td>222</td><td>33</td></tr>'
+            '<tr><td>111</td><td>222</td><td>33</td></tr>',
+            '<tr><td>4</td><td>55</td><td>666</td></tr>'
         ].join('');
         insertNodeAtSelection(t);
     }
@@ -180,10 +187,7 @@ function createEditor(config) {
         var at = {}, el = uidiv.querySelector('#enterLink'), sel, range;
         sel = iframe.contentDocument.getSelection();
         range = sel.getRangeAt(0);
-        if (range.collapsed) {
-            el.style.visibility = 'hidden';
-            return;
-        }
+
         if (el.style.visibility === 'visible') {
             el.style.visibility = 'hidden';
             currentLink = '';
@@ -195,6 +199,9 @@ function createEditor(config) {
             el.firstChild.value = at.a.href;
             currentLink = at.a;
         } else if (at.selType === 'None') {
+            return;
+        } else if (range.collapsed) {
+            el.style.visibility = 'hidden';
             return;
         }
         el.style.visibility = 'visible';
@@ -249,6 +256,10 @@ function createEditor(config) {
     }
     function editCommand(e) {
         var task;
+        if (noaction) {
+            return;
+        }
+        noaction = true;
         stopBubble(e);
         restoreSelection();
         task = this.id.split('-')[1];
@@ -257,6 +268,7 @@ function createEditor(config) {
         } else {
             iframe.contentDocument.execCommand(task, false, null);
         }
+        noaction = false;
     }
     function foreColor(e) {
         stopBubble(e);
@@ -474,6 +486,10 @@ function createEditor(config) {
         var sel, range, startContainer, pos, textBefore, textAfter,
                 afterNode, beforeNode, textNode, text;
         sel = iframe.contentDocument.getSelection();
+        if (sel.anchorNode === null) {
+            restoreSelection();
+            sel = iframe.contentDocument.getSelection();
+        }
         sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
         sel.anchorNode.thisIsTheStartContainer = 'start';
         sel.focusNode.parentNode.thisIsTheEndNode = 'end';
@@ -507,7 +523,7 @@ function createEditor(config) {
             startContainer.removeChild(textNode);
         } else {
             afterNode = startContainer.childNodes[pos];
-            startContainer.appendChild(insertNode);
+            startContainer.insertBefore(insertNode, afterNode);
         }
 
         return insertNode;
