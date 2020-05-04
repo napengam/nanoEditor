@@ -68,7 +68,8 @@ function createEditor(config) {
             {'label': 'Image', 'event': 'click', 'action': insertImageDropZone},
             {'label': 'Link', 'event': 'click', 'action': enterEditLink},
             {'label': 'Table', 'event': 'click', 'action': enterTable},
-            {'label': 'saveLink', 'event': 'click', 'action': saveLink}
+            {'label': 'saveLink', 'event': 'click', 'action': saveLink},
+            {'label': 'deleteLink', 'event': 'click', 'action': deleteLink}
         ];
         document.body.appendChild(uidiv);
         uidiv.classList.add('uidivuidiv');
@@ -127,6 +128,7 @@ function createEditor(config) {
             "<tr><td id='enterLink' style='visibility:hidden;text-align:center'>",
             "<input type=text placeholder='enter URL' size=80 maxlegth=265>",
             "<button id=", t, "saveLink ><i class='fa fa-fw fa-save' title='save Link'></i></button>",
+            "<button id=", t, "deleteLink ><i class='fa fa-fw fa-unlink' title='delete Link'></i></button>",
             "</td></tr>",
             "<tr><td><iframe style='min-height:800px;resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
             "<tr><td style='border-top:1px solid black' class='formatLine'>where am I ?</td></tr>",
@@ -289,6 +291,22 @@ function createEditor(config) {
             insertNodeAtSelection(a);
         }
     }
+    function deleteLink() {
+        var i, n, parent, el = uidiv.querySelector('#enterLink');
+
+        el.style.visibility = 'hidden';
+        if (currentLink) {
+            parent = currentLink.parentNode;
+            n = currentLink.childNodes.length;
+            for (i = 0; i < n; i++) {
+                parent.insertBefore(currentLink.childNodes[i], currentLink);
+                i--;
+                n--;
+            }
+            parent.removeChild(currentLink);
+            currentLink = '';
+        }
+    }
 
     function insertImageDropZone() {
         var sel, dz, node;
@@ -420,8 +438,9 @@ function createEditor(config) {
 
         if (startContainer.nodeType === 3) {
             textNode = startContainer;
-            startContainer = textNode.parentNode;
             text = startContainer.nodeValue;
+            startContainer = textNode.parentNode;
+
             textBefore = text.substr(0, pos);
             textAfter = text.substr(pos);
             beforeNode = document.createTextNode(textBefore);
