@@ -16,16 +16,16 @@ $payload = [];
 $payload['error'] = '';
 
 if (isset($_POST['submit']) && $_POST['submit'] == "Speichern") {
-    if (preg_match('/\.bad$|\.exe$|\.vbs$|\.pl$/', basename($_FILES['uploadedfile']['name'])) < 1) {
+    if (preg_match('/\.bad$|\.exe$|\.vbs$|\.pl$/', basename($_FILES['uploadedFile']['name'])) < 1) {
 
         // Where the file is going to be placed
-        //echo $_FILES['uploadedfile']['name'];
+        //echo $_FILES['uploadedFile']['name'];
         $path = $_POST['path'];
-        $target_path = $path . time() . '_' . basename($_FILES['uploadedfile']['name']);
+        $target_path = $path . time() . '_' . basename($_FILES['uploadedFile']['name']);
         if (file_exists($target_path)) {
             unlink($target_path);
         }
-        if (move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $target_path)) {
+        if (move_uploaded_file($_FILES['uploadedFile']['tmp_name'], $target_path)) {
             $hw = getimagesize($target_path);
             $ratio = calculateAspectRatioFit($hw[0], $hw[1], 400, 300);
         } else {
