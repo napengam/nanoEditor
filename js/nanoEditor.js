@@ -1,3 +1,5 @@
+/* global Node */
+
 //
 // * nanoEditor.js
 // * http://hgsweb.de/
@@ -12,7 +14,8 @@ function createEditor(config) {
     'use strict';
     var // GLOBALS within this module
 
-            noaction = false, defaultOptions, docx, d, t, iframe, uidiv, self, cfg, thisDropZone, savedInnerHTML, context_timeout,
+            defaultOptions, docx, d, t, iframe, uidiv, self, cfg,
+            thisDropZone, savedInnerHTML, context_timeout,
             configMenu = [], innerHTML, storedSelections, currentLink = '',
             saveCallback, closeCallback, theForm;
     //*
@@ -31,9 +34,9 @@ function createEditor(config) {
     if (typeof config !== 'undefined' && typeof config === 'object') {
         cfg = Object.assign(defaultOptions, config);
     }
-//*
-//* create
-//
+    //********************************************
+    //  create oen Instance of Editor
+    //*******************************************
 
     createEditUI();
 
@@ -130,9 +133,17 @@ function createEditor(config) {
             "</table>"
         ].join('');
         t = t.toString();
+        //********************************************
+        //  instrument buttons from config with callbacks
+        //*******************************************
+
         configMenu.forEach(function (item) {
             document.getElementById(t + item.label).addEventListener(item.event, item.action, false);
         });
+        //********************************************
+        //  prepare the iframe
+        //*******************************************
+
         iframe = document.getElementById(t + 'nanoContent');
         iframe.style.border = '0px';
         docx = iframe.contentDocument;
@@ -152,6 +163,62 @@ function createEditor(config) {
         uidiv.onmouseover = stopBubble;
         uidiv.onmouseup = stopBubble;
         uidiv.keyup = stopBubble;
+    }
+    function attacheEditor() {
+        closeEditor();
+        savedInnerHTML = this.innerHTML;
+        this.innerHTML = '';
+        this.appendChild(uidiv);
+        setContent(savedInnerHTML);
+    }
+    function setContent(content) {
+        var dz, docx = iframe.contentDocument;
+        if (content === '') {
+            content = '&nbsp;';
+        }
+        docx.open();
+        docx.write(content);
+        docx.close();
+        docx.body.contentEditable = true;
+        docx.body.ondrop = function (e) {
+            e.preventDefault();
+            return false;
+        };
+        docx.contentEditable = true;
+        uidiv.style.display = 'inline-block';
+        docx.body.focus();
+
+        //********************************************
+        //  prepare any dropzones from attached content
+        //*******************************************
+
+        if (cfg.imageUploadPath) {
+            dz = docx.querySelectorAll('.dropZone');
+            dz.forEach((node) => {
+                uploadFiles(node, '', '');
+            });
+        }
+
+        docx.body.onmouseup = watchEvent;
+        docx.body.onkeyup = watchEvent;
+        //********************************************
+        //  inject styles,  fontawsome and creat context menue for tables
+        //*******************************************
+        makeStyle();
+        makeScript();
+        makeTableContextMenu();
+    }
+
+    function saveContent() {
+        var innerHTML = iframe.contentDocument.body.innerHTML;
+        var node = uidiv.parentNode;
+        uidiv.style.display = 'none';
+        document.body.appendChild(uidiv);
+        node.innerHTML = '';
+        node.innerHTML = innerHTML;
+        if (typeof saveCallback === 'function') {
+            saveCallback();
+        }
     }
 
     function makeStyle() {
@@ -195,9 +262,9 @@ function createEditor(config) {
         }
         el.firstChild.value = '';
         at = isElement('A');
-        if (at.a) {
-            el.firstChild.value = at.a.href;
-            currentLink = at.a;
+        if (at.elem) {
+            el.firstChild.value = at.elem.href;
+            currentLink = at.elem;
         } else if (at.selType === 'None') {
             return;
         } else if (range.collapsed) {
@@ -210,9 +277,8 @@ function createEditor(config) {
 
     function saveLink() {
         var a, el = uidiv.querySelector('#enterLink');
-        if (el.style.visibility === 'visible') {
-            el.style.visibility = 'hidden';
-        }
+
+        el.style.visibility = 'hidden';
         if (currentLink) {
             currentLink.href = uidiv.querySelector('#enterLink').firstChild.value;
             currentLink = '';
@@ -226,6 +292,7 @@ function createEditor(config) {
 
     function insertImageDropZone() {
         var sel;
+
         if (cfg.imageUploadPath === '') {
             return;
         }
@@ -243,23 +310,8 @@ function createEditor(config) {
         });
     }
 
-    function saveContent() {
-        var innerHTML = iframe.contentDocument.body.innerHTML;
-        var node = uidiv.parentNode;
-        uidiv.style.display = 'none';
-        document.body.appendChild(uidiv);
-        node.innerHTML = '';
-        node.innerHTML = innerHTML;
-        if (typeof saveCallback === 'function') {
-            saveCallback();
-        }
-    }
     function editCommand(e) {
         var task;
-        if (noaction) {
-            return;
-        }
-        noaction = true;
         stopBubble(e);
         restoreSelection();
         task = this.id.split('-')[1];
@@ -268,7 +320,6 @@ function createEditor(config) {
         } else {
             iframe.contentDocument.execCommand(task, false, null);
         }
-        noaction = false;
     }
     function foreColor(e) {
         stopBubble(e);
@@ -319,43 +370,7 @@ function createEditor(config) {
             closeCallback();
         }
     }
-    function setContent(content) {
-        var dz, docx = iframe.contentDocument;
-        if (content === '') {
-            content = '&nbsp;';
-        }
-        docx.open();
-        docx.write(content);
-        docx.close();
-        docx.body.contentEditable = true;
-        docx.body.ondrop = function (e) {
-            e.preventDefault();
-            return false;
-        };
-        docx.contentEditable = true;
-        uidiv.style.display = 'inline-block';
-        docx.body.focus();
-        if (cfg.imageUploadPath) {
-            dz = docx.querySelectorAll('.dropZone');
-            dz.forEach((node) => {
-                uploadFiles(node, '', '');
-            });
-        }
 
-        docx.body.onmouseup = watchEvent;
-        docx.body.onkeyup = watchEvent;
-        makeStyle();
-        makeScript();
-        makeTableContextMenu();
-    }
-    function attacheEditor() {
-
-        closeEditor();
-        savedInnerHTML = this.innerHTML;
-        this.innerHTML = '';
-        this.appendChild(uidiv);
-        setContent(savedInnerHTML);
-    }
     function onSaveCallback(Callback) {
         if (typeof Callback === 'function') {
             saveCallback = Callback;
@@ -372,7 +387,6 @@ function createEditor(config) {
     }
 
     function copyAllFormSelection(sel, newNode) {
-
         var nl = [];
         nl = sel.anchorNode.parentNode.childNodes;
         walkNodes(newNode, nl, sel);
@@ -380,27 +394,27 @@ function createEditor(config) {
     }
     function walkNodes(parent, nodeList, selorg) {
         var i, what, nli, n = nodeList.length, start, end, tmp, sel = {};
+
         what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
 
-        if (what === Node.DOCUMENT_POSITION_PRECEDING) { // left  to right selection
-            selorg.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
-            selorg.anchorNode.thisIsTheStartContainer = '';
-            selorg.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
-            selorg.focusNode.thisIsTheEndContainer = '';
+        if (what === Node.DOCUMENT_POSITION_PRECEDING) { //right  toleft selectio
 
+            // swap
             sel.anchorNode = selorg.focusNode;
             sel.anchorOffset = selorg.focusOffset;
             sel.focusNode = selorg.anchorNode;
             sel.focusOffset = selorg.anchorOffset;
-            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
-            sel.anchorNode.thisIsTheStartContainer = 'start';
-            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
-            sel.focusNode.thisIsTheEndContainer = 'end';
+            // tag
+            // get nodelist again
             nodeList = sel.anchorNode.parentNode.childNodes;
         } else {
             sel = selorg;
         }
-        // find start conatiner
+        //tag start and end containers      
+        sel.anchorNode.thisIsTheStartContainer = 'start';
+        sel.focusNode.thisIsTheEndContainer = 'end';
+
+        // find start container where we begin copy
         for (i = 0; i < n; i++) {
             nli = nodeList[i];
             if (nli.thisIsTheStartContainer === 'start') {
@@ -420,7 +434,7 @@ function createEditor(config) {
                         nli.thisIsTheEndContainer = '';
                         start = sel.anchorOffset;
                         end = sel.focusOffset;
-                        if (start > end) {
+                        if (start > end) { // swap
                             tmp = start;
                             start = end;
                             end = tmp;
@@ -467,33 +481,29 @@ function createEditor(config) {
         var start, sel, range;
         sel = iframe.contentDocument.getSelection();
         if (sel.type !== 'Caret') {
-            return {'a': '', 'selType': sel.type};
+            return {'elem': '', 'selType': sel.type};
         }
         range = sel.getRangeAt(0);
         start = range.startContainer;
         do {
             if (typeof start.tagName !== 'undefined') {
                 if (tagName === start.tagName) {
-                    return {'a': start, 'selType': sel.type};
+                    return {'elem': start, 'selType': sel.type};
                 }
             }
             start = start.parentNode;
         } while (start !== null && start.tagName !== 'BODY');
-        return {'a': '', 'selType': sel.type};
+        return {'elem': '', 'selType': sel.type};
     }
     function insertNodeAtSelection(insertNode) {
 
-        var sel, range, startContainer, pos, textBefore, textAfter,
+        var sel, stop = false, range, startContainer, pos, textBefore, textAfter,
                 afterNode, beforeNode, textNode, text;
         sel = iframe.contentDocument.getSelection();
         if (sel.anchorNode === null) {
             restoreSelection();
             sel = iframe.contentDocument.getSelection();
         }
-        sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
-        sel.anchorNode.thisIsTheStartContainer = 'start';
-        sel.focusNode.parentNode.thisIsTheEndNode = 'end';
-        sel.focusNode.thisIsTheEndContainer = 'end';
         range = sel.getRangeAt(0);
         startContainer = range.startContainer;
         pos = range.startOffset;
@@ -501,7 +511,16 @@ function createEditor(config) {
             if (range.collapsed) {
                 return;
             }
+            //tag anchor and focus node
+            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
+            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
             if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
+                stop = true; // selection spans multiple nodes/ siblings
+            }
+            // untag
+            sel.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
+            sel.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
+            if (stop) {
                 return;
             }
             insertNode.skipThisNode = true;
@@ -532,8 +551,8 @@ function createEditor(config) {
         var pos = {};
         if (e) {
             pos = isElement('TABLE');
-            if (pos.a) {
-                pos.a.oncontextmenu = function (e) {
+            if (pos.elem) {
+                pos.elem.oncontextmenu = function (e) {
                     contextMenu(e);
                     return false;
                 };
