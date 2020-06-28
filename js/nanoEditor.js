@@ -35,7 +35,7 @@ function createEditor(config) {
         cfg = Object.assign(defaultOptions, config);
     }
     //********************************************
-    //  create oen Instance of Editor
+    //  create one Instance of Editor
     //*******************************************
 
     createEditUI();
@@ -212,6 +212,11 @@ function createEditor(config) {
     }
 
     function saveContent() {
+        // remove context menu from iframe source
+        var ctm = iframe.contentDocument.getElementById(t + 'ctm');
+        if (ctm) {
+            ctm.parentNode.removeChild(ctm);
+        }
         var innerHTML = iframe.contentDocument.body.innerHTML;
         var node = uidiv.parentNode;
         uidiv.style.display = 'none';
@@ -586,10 +591,10 @@ function createEditor(config) {
         var div = document.createElement('DIV');
         div.id = t + 'ctm';
         div.innerHTML = [
-            '<span id="irow"><i class="fa fa-xs fa-arrow-left"> </i> Insert Row</span><br>',
+            '<span id="irow"><i class="fa fa-xs fa-bars"> </i> Insert Row</span><br>',
             '<span id="drow"><i style="color:red" class="fa  fa-trash"> </i> Delete row </span><br>',
             '<hr>',
-            '<span id="icol"><i class="fa fa-columns"> </i> Insert Column</span><br>',
+            '<span id="icol"><i class="fa fa-bars fa-rotate-90"> </i> Insert Column</span><br>',
             '<span id="dcol"><i style="color:red" class="fa f fa-trash"> </i> Delete column</span>'
         ].join('');
 
@@ -601,7 +606,7 @@ function createEditor(config) {
     }
     function contextMenu(e) {
         var div, left, top, obj;
-        stopBubble();
+        stopBubble(e);
         div = iframe.contentDocument.getElementById(t + 'ctm');
         div.style.display = '';
         div.style.position = 'absolute';
@@ -665,9 +670,11 @@ function createEditor(config) {
         ri = cell.parentNode.rowIndex;
         cc = cell.parentNode.cells.length;
         row = cell.parentNode.parentNode.insertRow(ri);
+
         for (i = 0; i < cc; i++) {
             row.insertCell(0);
         }
+        row.cells[0].innerHTML = '&nbsp;';
         closeContextMenu();
         return;
 
@@ -781,11 +788,11 @@ function createEditor(config) {
         }
 
         function dropHandler(ev) {
-            var file, formData, allow;
+            var file, formData;
             // Prevent default behavior (Prevent file from being opened)
             ev.preventDefault();
-            allow = false;
             if (ev.dataTransfer.items) {
+                thisDropZone = this;
                 // Use DataTransferItemList interface to access the file(s)
                 [].some.call(ev.dataTransfer.items, function (item) {
                     // If dropped items aren't files, reject them
@@ -793,19 +800,15 @@ function createEditor(config) {
                         file = item.getAsFile();
                         formData = new FormData(theForm);
                         formData.append('uploadedFile', file, file.name);
-                        allow = true;
+                        // send file over
+                        request.open("POST", theForm.action, true);
+                        request.onreadystatechange = onChange;
+                        request.send(formData);
                         return true;
                     }
                     return false;
                 });
             }
-            if (!allow) {
-                return;
-            }
-            thisDropZone = this;
-            request.open("POST", theForm.action, true);
-            request.onreadystatechange = onChange;
-            request.send(formData);
         }
         function onChange() {
             var js;
