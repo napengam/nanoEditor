@@ -37,7 +37,7 @@ function createEditor(config) {
     //********************************************
     //  create one Instance of Editor
     //*******************************************
-    
+
     createEditUI();
 
     function createEditUI() {
@@ -210,8 +210,7 @@ function createEditor(config) {
         //********************************************
         //  inject styles,  fontawsome and creat context menue for tables
         //*******************************************
-        //    makeStyle();
-        makeScript();
+        makeStyle();
         makeTableContextMenu();
     }
 
@@ -237,18 +236,13 @@ function createEditor(config) {
         styleElem.innerHTML = [
             "table,  th, td{border-collapse:collapse;  border: 1px solid silver;}",
             "th, td{min-width:2em}",
-            ".contextctmC {}", 
+            ".contextctmC {}",
             ".contextctmC > span:hover{cursor:default}"
         ].join('');
         iframe.contentDocument.getElementsByTagName('head')[0].appendChild(styleElem);
         return styleElem;
     }
-    function makeScript() {
-        var elem = iframe.contentDocument.createElement('SCRIPT');
-        elem.src = "https://use.fontawesome.com/ed46cb3bd2.js";
-        iframe.contentDocument.getElementsByTagName('head')[0].appendChild(elem);
-        return elem;
-    }
+
 
     function enterTable() {
         var t;
@@ -656,7 +650,6 @@ function createEditor(config) {
     function uploadFiles(dropZoneId) {
         'use strict';
         var
-                request = new XMLHttpRequest(),
                 dropZone, div;
         // 
         //    add drop handlers
@@ -670,6 +663,11 @@ function createEditor(config) {
         dropZone.ondrop = dropHandler;
         dropZone.ondragover = function (event) {
             event.preventDefault();
+            event.target.style.border = '2px solid #333';
+        };
+        dropZone.ondragleave = function (event) {
+            event.preventDefault();
+            event.target.style.border = '0px solid #333';
         };
 
         if (!theForm) { // GLOBAL
@@ -689,7 +687,7 @@ function createEditor(config) {
         }
 
         function dropHandler(ev) {
-            var file, formData;
+            var file, formData, request = new XMLHttpRequest();
             // Prevent default behavior (Prevent file from being opened)
             ev.preventDefault();
             if (ev.dataTransfer.items) {
@@ -703,26 +701,17 @@ function createEditor(config) {
                         formData.append('uploadedFile', file, file.name);
                         // send file over
                         request.open("POST", theForm.action, true);
-                        request.onreadystatechange = onChange;
+                        request.onreadystatechange = () => {
+                            if (request.readyState === 4 && request.status === 200) {
+                                const js = JSON.parse(request.responseText);
+                                thisDropZone.innerHTML = `<img style='width:${js.width}px' src='${js.result}'>`;
+                            }
+                        };
                         request.send(formData);
                         return true;
                     }
                     return false;
                 });
-            }
-        }
-        function onChange() {
-            var js;
-            if (this.readyState !== 4 || this.status !== 200) {
-                if (this.readyState === 4) {
-                }
-                return;
-            }
-            try {
-                js = JSON.parse(this.responseText);
-                thisDropZone.innerHTML = `<img style='width:${js.width}px''; src='${js.result}'>`;
-            } catch (e) {
-                return;
             }
         }
     }
