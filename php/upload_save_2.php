@@ -1,46 +1,34 @@
 <?php
 
-//$json = @file_get_contents('php://input');
-//$payload = json_decode($json, true);
-//$_POST = $payload;
-$cd = getcwd();
-//chdir('..');
-
-/**
-  function exception_error_handler($errno, $errstr, $errfile, $errline) {
-  throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
-  }
-  set_error_handler("exception_error_handler");* */
 $cd = getcwd();
 $payload = [];
 $payload['error'] = '';
 
-if (isset($_POST['submit']) && $_POST['submit'] == "Speichern") {
-    if (preg_match('/\.bad$|\.exe$|\.vbs$|\.pl$/', basename($_FILES['uploadedFile']['name'])) < 1) {
-
-        // Where the file is going to be placed
-        //echo $_FILES['uploadedFile']['name'];
+if (isset($_POST['submit']) && $_POST['submit'] === "Speichern") {
+    $uploadedFile = $_FILES['uploadedFile'];
+    $nonoExtensions = ['bad', 'exe', 'vbs', 'pl'];
+    $fileExtension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
+    if (in_array($fileExtension, $nonoExtensions)) {
+        $payload['error'] = "<h2>Dateien dieses Typs werden nicht hochgeladen</h2>";
+    } else {
         $path = $_POST['path'];
-        $target_path = $path . time() . '_' . basename($_FILES['uploadedFile']['name']);
+        $target_path = $path . time() . '_' . basename($uploadedFile['name']);
         if (file_exists($target_path)) {
             unlink($target_path);
         }
-        if (move_uploaded_file($_FILES['uploadedFile']['tmp_name'], $target_path)) {
+        if (move_uploaded_file($uploadedFile['tmp_name'], $target_path)) {
             $hw = getimagesize($target_path);
             $ratio = calculateAspectRatioFit($hw[0], $hw[1], 400, 300);
         } else {
-            if (!file_exists($path)) {
-                $payload['error'] = "<h2>Directory $path nicht gefunden </h2>";
-            } else {
-                $payload['error'] = "<h2>Fehler beim laden (Datei größer 100KB ??); bitte nochmals versuchen</h2>";
-            }
+            $payload['error'] = "<h2>";
+            $payload['error'] .= !file_exists($path) ? "Verzeichnis $path nicht gefunden" : "Fehler beim Laden (Datei größer als 100 KB?); bitte erneut versuchen";
+            $payload['error'] .= "</h2>";
         }
-    } else {
-        $payload['error'] = "<h2>Datein diesen Typs werden nicht hochgeladen</h2>";
     }
 } else {
     $payload['error'] = "HILFE";
 }
+
 
 $payload['result'] = $target_path;
 $payload['width'] = ($hw[0] + 0.0) * $ratio;
