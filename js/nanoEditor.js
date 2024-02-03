@@ -37,7 +37,7 @@ function createEditor(config) {
     //********************************************
     //  create one Instance of Editor
     //*******************************************
-
+    
     createEditUI();
 
     function createEditUI() {
@@ -74,31 +74,31 @@ function createEditor(config) {
         document.body.appendChild(uidiv);
         uidiv.classList.add('uidivuidiv');
         uidiv.style.border = '1px solid gray';
-        uidiv.style.backgroundColor = 'rgb(249, 249, 249)';
+        uidiv.style.backgroundColor = 'white';//';rgb(249, 249, 249)';
         uidiv.style.display = 'inline-block';
-        uidiv.style.width = 'auto';
+        uidiv.style.width = '800px';
 
         uidiv.id = t + 'Div';
-        uidiv.innerHTML = ["<table style='border-collapse:collapse'>",
-            "<tr style='border-bottom:1px solid gray' id=", t, "saveselect><td>",
-            "<button id=", t, "save><i class='fa fa-fw fa-save' title='save&close'></i></button>",
-            "<i class='fa fa-fw fa-square-full'></i>",
-            "<button id=", t, "-bold ><i class='fa fa-fw fa-bold' title='Bold'></i></button>",
-            "<button id=", t, "-italic><i class='fa fa-fw fa-italic'  title='Italics'></i></button>",
-            "<button id=", t, "-underline><i class='fa fa-fw fa-underline' title='underline'></i></button><i class='fa fa-fw fa-square-full'></i>",
-            "<button id=", t, "-insertUnorderedList><i class='fa fa-fw fa-list-ul' title='unordered list'></i></button>",
-            "<button id=", t, "-insertOrderedList><i class='fa fa-fw fa-list-ol' title='unordered list'></i></button>",
-            "<i class='fa fa-fw fa-square-full'></i>",
-            "<button id=", t, "-Justifyleft><i class='fa fa-fw fa-align-left' title='align left'></i></button>",
-            "<button id=", t, "-Justifyright><i class='fa fa-fw fa-align-right' title='align right'></i></button>",
-            "<button id=", t, "-Justifyfull><i class='fa fa-fw fa-align-justify' title='align full'></i></button>",
-            "<button id=", t, "-Justifycenter><i class='fa fa-fw fa-align-center' title='align center'></i></button>",
-            "<i class='fa fa-fw fa-square-full'></i>",
-            "<button id=", t, "-outdent><i class='fa fa-fw fa-outdent' title='outdent'></i></button>",
-            "<button id=", t, "-indent><i class='fa fa-fw fa-indent' title='indent'></i></button>",
-            "<i class='fa fa-fw fa-square-full'></i>",
-            "<button id=", t, "-print><i class='fa fa-fw fa-print' title='print'></i></button>",
-            "<i class='fa fa-fw fa-square-full'></i>",
+        uidiv.innerHTML = ["<table style='min-width:600px;border-collapse:collapse'>",
+            "<tr style='border-bottom:0px solid gray' id=", t, "saveselect><td>",
+            "<button id=", t, "save><i class='fa-solid fa-save' title='save&close'></i></button>",
+            "<i class='fa-solid fa-square-full hidesquare'></i>",
+            "<button id=", t, "-bold ><i class='fa-solid fa-bold' title='Bold'></i></button>",
+            "<button id=", t, "-italic><i class='fa-solid fa-italic'  title='Italics'></i></button>",
+            "<button id=", t, "-underline><i class='fa-solid fa-underline' title='underline'></i></button><i class='fa-solid fa-square-full hidesquare'></i>",
+            "<button id=", t, "-insertUnorderedList><i class='fa-solid fa-list-ul' title='unordered list'></i></button>",
+            "<button id=", t, "-insertOrderedList><i class='fa-solid fa-list-ol' title='unordered list'></i></button>",
+            "<i class='fa-solid fa-square-full hidesquare'></i>",
+            "<button id=", t, "-Justifyleft><i class='fa-solid fa-align-left' title='align left'></i></button>",
+            "<button id=", t, "-Justifyright><i class='fa-solid fa-align-right' title='align right'></i></button>",
+            "<button id=", t, "-Justifyfull><i class='fa-solid fa-align-justify' title='align full'></i></button>",
+            "<button id=", t, "-Justifycenter><i class='fa-solid fa-align-center' title='align center'></i></button>",
+            "<i class='fa-solid fa-square-full hidesquare'></i>",
+            "<button id=", t, "-outdent><i class='fa-solid fa-outdent' title='outdent'></i></button>",
+            "<button id=", t, "-indent><i class='fa-solid fa-indent' title='indent'></i></button>",
+            "<i class='fa-solid fa-square-full hidesquare'></i>",
+            "<button id=", t, "-print><i class='fa-solid fa-print' title='print'></i></button>",
+            "<i class='fa-solid fa-square-full hidesquare'></i>",
             "<span><select id=", t, "Font name=sel size=1  tabindex=-1 style='font-size:1em'>",
             "<option></option> ",
             "<option value=Courier selected>Courier</option> ",
@@ -117,18 +117,18 @@ function createEditor(config) {
             "<option value=7>7</option> ",
             "</select></span>",
             "<input id=", t, "Color type='color' value='#000000' title='Foreground' style='width:2em;margin:0;padding:0;border:0;position:relative;top:3px'>",
-            "<i class='fa fa-fw fa-square-full'></i>",
-            "<button id=", t, "-undo ><i class='fa fa-fw fa-undo' title='undo'></i></button>",
-            "<button id=", t, "Table ><i class='fa fa-fw fa-table' title='Table'></i></button>",
-            "<button id=", t, "Image ><i class='fa fa-fw fa-image' title='Picture'></i></button>",
-            "<button id=", t, "Link ><i class='fa fa-fw fa-link' title='Link'></i></button>",
-            "<i class='fa fa-fw fa-square-full'></i>",
-            "<button  style=''  id=", t, "close ><i style='color:red' class='fa fa-fw fa-times' title='close'></i></button>",
+            "<i class='fa-solid fa-square-full hidesquare'></i>",
+            "<button id=", t, "-undo ><i class='fa-solid fa-undo' title='undo'></i></button>",
+            "<button id=", t, "Table ><i class='fa-solid fa-table' title='Table'></i></button>",
+            "<button id=", t, "Image ><i class='fa-solid fa-image' title='Picture'></i></button>",
+            "<button id=", t, "Link ><i class='fa-solid fa-link' title='Link'></i></button>",
+            "<i class='fa-solid fa-square-full hidesquare'></i>",
+            "<button  style=''  id=", t, "close ><i style='color:red' class='fa-solid fa-times' title='close'></i></button>",
             "</td></tr>",
             "<tr><td id='enterLink' style='visibility:hidden;text-align:center'>",
             "<input type=text placeholder='enter URL' size=80 maxlegth=265>",
-            "<button id=", t, "saveLink ><i class='fa fa-fw fa-save' title='save Link'></i></button>",
-            "<button id=", t, "deleteLink ><i class='fa fa-fw fa-unlink' title='delete Link'></i></button>",
+            "<button id=", t, "saveLink ><i class='fa-solid fa-save' title='save Link'></i></button>",
+            "<button id=", t, "deleteLink ><i class='fa-solid fa-unlink' title='delete Link'></i></button>",
             "</td></tr>",
             "<tr><td><iframe style='min-height:800px;resize:vertical;width:100%' id =", t, "nanoContent src = '' ></iframe></td></tr> ",
             "<tr><td style='border-top:1px solid black' class='formatLine'>where am I ?</td></tr>",
@@ -200,13 +200,17 @@ function createEditor(config) {
                 uploadFiles(node);
             });
         }
+        dz = docx.querySelectorAll('TABLE');
+        dz.forEach((node) => {
+            node.oncontextmenu = contextMenu;
+        });
 
         docx.body.onmouseup = watchEvent;
         docx.body.onkeyup = watchEvent;
         //********************************************
         //  inject styles,  fontawsome and creat context menue for tables
         //*******************************************
-        makeStyle();
+        //    makeStyle();
         makeScript();
         makeTableContextMenu();
     }
@@ -233,7 +237,7 @@ function createEditor(config) {
         styleElem.innerHTML = [
             "table,  th, td{border-collapse:collapse;  border: 1px solid silver;}",
             "th, td{min-width:2em}",
-            ".contextctmC {}",
+            ".contextctmC {}", 
             ".contextctmC > span:hover{cursor:default}"
         ].join('');
         iframe.contentDocument.getElementsByTagName('head')[0].appendChild(styleElem);
@@ -255,13 +259,13 @@ function createEditor(config) {
             '<tr><td>4</td><td>55</td><td>666</td></tr>'
         ].join('');
         insertNodeAtSelection(t);
+        t.oncontextmenu = contextMenu;
     }
 
     function enterEditLink() {
         var at = {}, el = uidiv.querySelector('#enterLink'), sel, range;
         sel = iframe.contentDocument.getSelection();
         range = sel.getRangeAt(0);
-
         if (el.style.visibility === 'visible') {
             el.style.visibility = 'hidden';
             currentLink = '';
@@ -273,9 +277,6 @@ function createEditor(config) {
             el.firstChild.value = at.elem.href;
             currentLink = at.elem;
         } else if (at.selType === 'None') {
-            return;
-        } else if (range.collapsed) {
-            el.style.visibility = 'hidden';
             return;
         }
         el.style.visibility = 'visible';
@@ -324,8 +325,9 @@ function createEditor(config) {
             return;
         }
         node = document.createElement('span');
-        node.innerHTML = "&nbsp;<i title='Drop picture here'>DROPZONE</i>&nbsp;";
+        node.innerHTML = "&nbsp;<i  title='Drop picture here'>DROPZONE</i>&nbsp;";
         node.className = 'dropZone';
+
         insertNodeAtSelection(node);
         dz = iframe.contentDocument.querySelectorAll('.dropZone');
         dz.forEach((node) => {
@@ -410,7 +412,7 @@ function createEditor(config) {
     }
     function insertNodeAtSelection(insertNode) {
 
-        var sel, stop = false, range, startContainer, pos, textBefore, textAfter,
+        var sel, range, startContainer, df, pos, textBefore, textAfter,
                 afterNode, beforeNode, textNode, text;
         sel = iframe.contentDocument.getSelection();
         if (sel.anchorNode === null) {
@@ -420,27 +422,10 @@ function createEditor(config) {
         range = sel.getRangeAt(0);
         startContainer = range.startContainer;
         pos = range.startOffset;
-        if (insertNode.tagName === 'A') {
-            if (range.collapsed) {
-                return;
-            }
-            //tag anchor and focus node
-            sel.anchorNode.parentNode.thisIsTheStartNode = 'start';
-            sel.focusNode.parentNode.thisIsTheEndNode = 'end';
-            if (!sel.anchorNode.parentNode.thisIsTheEndNode) {
-                stop = true; // selection spans multiple nodes/ siblings
-            }
-            // untag
-            sel.anchorNode.parentNode.removeAttribute('thisIsTheStartNode');
-            sel.focusNode.parentNode.removeAttribute('thisIsTheEndNode');
-            if (stop) {
-                return;
-            }
-            insertNode.skipThisNode = true;
-            storedSelections = sel.getRangeAt(0);
-            copyAllFormSelection(sel, insertNode);
+        if (insertNode.tagName !== 'TABLE') {
+            df = range.extractContents();
+            insertNode.appendChild(df);
         }
-
         if (startContainer.nodeType === 3) {
             textNode = startContainer;
             text = startContainer.nodeValue;
@@ -452,91 +437,16 @@ function createEditor(config) {
             afterNode = document.createTextNode(textAfter);
             startContainer.insertBefore(afterNode, textNode);
             startContainer.insertBefore(insertNode, afterNode);
+
             startContainer.insertBefore(beforeNode, insertNode);
             startContainer.removeChild(textNode);
         } else {
             afterNode = startContainer.childNodes[pos];
             startContainer.insertBefore(insertNode, afterNode);
+
         }
 
         return insertNode;
-    }
-    function copyAllFormSelection(sel, newNode) {
-        var nl = [];
-        nl = sel.anchorNode.parentNode.childNodes;
-        walkNodes(newNode, nl, sel);
-        return;
-    }
-    function walkNodes(parent, nodeList, selorg) {
-        var i, what, nli, n = nodeList.length, start, end, tmp, sel = {};
-
-        what = selorg.anchorNode.compareDocumentPosition(selorg.focusNode);
-
-        if (what === Node.DOCUMENT_POSITION_PRECEDING) { //right  to left selection
-            // swap
-            sel.anchorNode = selorg.focusNode;
-            sel.anchorOffset = selorg.focusOffset;
-            sel.focusNode = selorg.anchorNode;
-            sel.focusOffset = selorg.anchorOffset;
-            // tag
-            // get nodelist again
-            nodeList = sel.anchorNode.parentNode.childNodes;
-        } else {
-            sel = selorg;
-        }
-        //tag start and end containers      
-        sel.anchorNode.thisIsTheStartContainer = 'start';
-        sel.focusNode.thisIsTheEndContainer = 'end';
-
-        // find start container where we begin copy
-        for (i = 0; i < n; i++) {
-            nli = nodeList[i];
-            if (nli.thisIsTheStartContainer === 'start') {
-                break;
-            }
-        }
-        // copy all from start conatiner to end
-        for (; i < n; i++) {
-            nli = nodeList[i];
-            if (nli.skipThisNode) {
-                nli.removeAttribute === 'function' ? nli.removeAttribute('skipThisNode') : nli.skipThisNode = false;
-                continue;
-            }
-            if (nli.nodeType === 3) {
-                if (nli.thisIsTheStartContainer === 'start') {
-                    nli.thisIsTheStartContainer = '';
-                    if (nli.thisIsTheEndContainer === 'end') {
-                        nli.thisIsTheEndContainer = '';
-                        start = sel.anchorOffset;
-                        end = sel.focusOffset;
-                        if (start > end) { // swap
-                            tmp = start;
-                            start = end;
-                            end = tmp;
-                        }
-                        parent.appendChild(document.createTextNode(nli.data.substr(start, end - start)));
-                        nli.data = nli.data.substr(0, start) + nli.data.substr(end);
-                        break
-                    }
-                    parent.appendChild(document.createTextNode(nli.data.substr(sel.anchorOffset)));
-                    nli.data = nli.data.substr(0, sel.anchorOffset);
-                } else if (nli.thisIsTheEndContainer === 'end') {
-                    nli.thisIsTheEndContainer = '';
-                    parent.appendChild(document.createTextNode(nli.data.substr(0, sel.focusOffset)));
-                    nli.data = nli.data.substr(sel.focusOffset, nli.data.length - sel.focusOffset);
-                    break;
-                } else {
-                    parent.appendChild(nli);
-                    i--;
-                    n--;
-                }
-            } else {
-                parent.appendChild(nli);
-                i--;
-                n--;
-            }
-        }
-        return parent;
     }
     function whereAmI() {
         var start, sel, range, path = [];
@@ -555,9 +465,6 @@ function createEditor(config) {
     function isElement(tagName) {
         var start, sel, range;
         sel = iframe.contentDocument.getSelection();
-        if (sel.type !== 'Caret') {
-            return {'elem': '', 'selType': sel.type};
-        }
         range = sel.getRangeAt(0);
         start = range.startContainer;
         do {
@@ -572,16 +479,8 @@ function createEditor(config) {
     }
 
     function watchEvent(e) {
-        var pos = {};
         if (e) {
-            pos = isElement('TABLE');
-            if (pos.elem) {
-                pos.elem.oncontextmenu = function (e) {
-                    contextMenu(e);
-                    return false;
-                };
-
-            } else if (e.type === 'mouseup' || e.type === 'keyup') {
+            if (e.type === 'mouseup' || e.type === 'keyup') {
                 whereAmI();
                 return;
             }
@@ -602,11 +501,13 @@ function createEditor(config) {
         div.style.backgroundColor = '#eaeaea';
         div.style.fontSize = '0.8em';
         div.className = "contextctmC";
+
         iframe.contentDocument.body.appendChild(div);
     }
     function contextMenu(e) {
         var div, left, top, obj;
-        stopBubble(e);
+        e.stopPropagation();
+        e.preventDefault();
         div = iframe.contentDocument.getElementById(t + 'ctm');
         div.style.display = '';
         div.style.position = 'absolute';
@@ -819,7 +720,7 @@ function createEditor(config) {
             }
             try {
                 js = JSON.parse(this.responseText);
-                thisDropZone.innerHTML = "<img style='width:" + js.width + "px;height:" + js.height + "px' src='" + js.result + "'>";
+                thisDropZone.innerHTML = `<img style='width:${js.width}px''; src='${js.result}'>`;
             } catch (e) {
                 return;
             }

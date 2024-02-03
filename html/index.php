@@ -2,8 +2,20 @@
 <html>
     <head>
         <title>nanoEditor</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">    
+        <link rel="stylesheet" href="/font-awesome-free-6.5.1-web/css/all.min.css">   
+        <style>
+            button{
+                border:none;
+                background:none;
+            }
+            button:hover{
+                background:silver;
+            }
+            .hidesquare{
+                visibility:hidden;
+            }
+        </style>
     </head>
     <body>
 
@@ -11,7 +23,7 @@
 
             <h1>double click here to start the editor</h1>
 
-            <H2> Image upload is not <i>configured</i> in this demo </h2> 
+            <b> Image upload is not <i>configured</i> in this demo </b> 
 
             <h2>Sources are located at <a href="https://github.com/napengam/nanoEditor" target='nanoEditor'>https://github.com/napengam/nanoEditor</a> </h2>
 
@@ -30,7 +42,7 @@
 
 
         </div>
-        <script src="https://use.fontawesome.com/ed46cb3bd2.js"></script>
+
         <script src="../js/nanoEditor.js"></script>
         <script>
 
