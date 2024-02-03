@@ -6,7 +6,7 @@ If you need such a beast have a look at other available editors.
 
 ![menue](img/edit.JPG)
 
-A demo is located at <a href="http://hgsweb.de/nanoEditor/html/index.php">hgsweb.de/nanoEditor/html</a>
+A demo is located at <a href="http://hgsweb.de/nanoEditor">hgsweb.de/nanoEditor</a>
 
 In the HTML directory there is and index.php that hopefully explains how to use the editor.
 The script for the editor is located in directory js as nanoEditor.js
