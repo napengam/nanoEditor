@@ -29,7 +29,6 @@ if (isset($_POST['submit']) && $_POST['submit'] === "Speichern") {
     $payload['error'] = "HILFE";
 }
 
-
 $payload['result'] = $target_path;
 $payload['width'] = ($hw[0] + 0.0) * $ratio;
 $payload['height'] = ($hw[1] + 0.0) * $ratio;
